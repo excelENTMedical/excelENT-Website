@@ -1,0 +1,8 @@
+export { Users } from './Users'
+export { Media } from './Media'
+export { Pages } from './Pages'
+export { Articles } from './Articles'
+export { Specialists } from './Specialists'
+export { FAQs } from './FAQs'
+export { Testimonials } from './Testimonials'
+export { LandingPages } from './LandingPages'
