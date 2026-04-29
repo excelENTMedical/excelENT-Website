@@ -1,0 +1,70 @@
+import HeroB2B from '@/components/b2b/HeroB2B'
+import ProofMetricStrip from '@/components/b2b/ProofMetricStrip'
+import SolutionTile from '@/components/b2b/SolutionTile'
+import EyebrowTag from '@/components/b2b/EyebrowTag'
+
+export default function B2BHomePage() {
+  return (
+    <>
+      <HeroB2B />
+      <ProofMetricStrip />
+
+      <section
+        aria-labelledby="solutions-heading"
+        className="border-b border-edge"
+      >
+        <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-32">
+          <div className="flex flex-col gap-3 max-w-3xl mb-12 md:mb-16">
+            <EyebrowTag tone="default">Practice Solutions</EyebrowTag>
+            <h2
+              id="solutions-heading"
+              className="font-display font-bold tracking-tight leading-tight text-3xl md:text-4xl lg:text-5xl text-ink text-balance"
+            >
+              The full operations stack for independent ENT practices.
+            </h2>
+            <p className="body-lead max-w-2xl mt-2">
+              Three connected products that drive patients in, handle the
+              calls, and recover the revenue. Use one or use all three.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 border border-edge divide-y md:divide-y-0 md:divide-x divide-edge">
+            <SolutionTile
+              productLabel="PS | Connect"
+              title="Patient prospecting and growth"
+              description="We bring in qualified sinus patients and route them to your practice — fast access, real-time insurance verification, 48-hour appointments."
+              bullets={[
+                'Real-time insurance verification',
+                'Location- and demographic-matched routing',
+                'Referring-physician partnership strategies',
+              ]}
+              href="/b2b/solutions/connect"
+            />
+            <SolutionTile
+              productLabel="PS | Lexi"
+              title="AI virtual front desk"
+              description="An ENT-specific AI assistant that answers calls, schedules appointments, and verifies insurance — HIPAA-compliant, EMR-integrated."
+              bullets={[
+                'After-hours and overflow call answering',
+                'EMR scheduling integration',
+                'BAA-backed HIPAA infrastructure',
+              ]}
+              href="/b2b/solutions/lexi"
+            />
+            <SolutionTile
+              productLabel="PS | RCM"
+              title="Revenue cycle management"
+              description="Reduce denial rates from the 11.8% industry baseline to 2.5%. Recover revenue and stabilize cash flow with billing built for ENT."
+              bullets={[
+                'Denial-rate diagnostic on day one',
+                'ENT-specific coding and audit-trail',
+                'Cash-flow improvement, not just collections',
+              ]}
+              href="/b2b/solutions/rcm"
+            />
+          </div>
+        </div>
+      </section>
+    </>
+  )
+}

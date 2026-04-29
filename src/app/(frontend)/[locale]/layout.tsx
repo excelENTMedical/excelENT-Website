@@ -41,7 +41,7 @@ export default async function LocaleLayout({
   const messages = await getMessages()
 
   return (
-    <html lang={locale} className={`${cabin.variable} ${montserrat.variable}`}>
+    <html lang={locale} data-theme="patient" className={`${cabin.variable} ${montserrat.variable}`}>
       <body className="min-h-screen flex flex-col bg-gray-50">
         <NextIntlClientProvider messages={messages}>
           <Header />

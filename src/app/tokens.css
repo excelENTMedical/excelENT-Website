@@ -1,0 +1,276 @@
+/* tokens.css — see /.design/b2b-rebuild/DESIGN_TOKENS.md for the source of truth */
+
+:root {
+  /* Neutral scale (zinc-aligned) */
+  --neutral-50:  #fafafa;
+  --neutral-100: #f4f4f5;
+  --neutral-200: #e4e4e7;
+  --neutral-300: #d4d4d8;
+  --neutral-400: #a1a1aa;
+  --neutral-500: #71717a;
+  --neutral-600: #52525b;
+  --neutral-700: #3f3f46;
+  --neutral-800: #27272a;
+  --neutral-900: #18181b;
+  --neutral-950: #09090b;
+
+  /* Status (shared across themes) */
+  --status-success: #16a34a;
+  --status-warning: #d97706;
+  --status-error:   #dc2626;
+  --status-info:    #0284c7;
+
+  /* Type families */
+  --font-family-display: var(--font-montserrat), system-ui, sans-serif;
+  --font-family-body:    var(--font-cabin), system-ui, sans-serif;
+  --font-family-mono:    ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Type sizes */
+  --font-size-xs:   0.75rem;
+  --font-size-sm:   0.875rem;
+  --font-size-base: 1rem;
+  --font-size-md:   1.125rem;
+  --font-size-lg:   1.25rem;
+  --font-size-xl:   1.5rem;
+  --font-size-2xl:  2rem;
+  --font-size-3xl:  2.5rem;
+  --font-size-4xl:  3.5rem;
+  --font-size-5xl:  4.5rem;
+  --font-size-6xl:  6rem;
+
+  /* Weights */
+  --font-weight-normal:   400;
+  --font-weight-medium:   500;
+  --font-weight-semibold: 600;
+  --font-weight-bold:     700;
+
+  /* Line heights */
+  --line-height-tight:    1.1;
+  --line-height-snug:     1.25;
+  --line-height-normal:   1.4;
+  --line-height-relaxed:  1.6;
+  --line-height-loose:    1.8;
+
+  /* Letter spacing */
+  --letter-spacing-tight:   -0.02em;
+  --letter-spacing-snug:    -0.01em;
+  --letter-spacing-normal:  0;
+  --letter-spacing-wide:    0.05em;
+  --letter-spacing-widest:  0.1em;
+
+  /* Spacing scale */
+  --space-0:   0;
+  --space-1:   0.25rem;
+  --space-2:   0.5rem;
+  --space-3:   0.75rem;
+  --space-4:   1rem;
+  --space-5:   1.25rem;
+  --space-6:   1.5rem;
+  --space-8:   2rem;
+  --space-10:  2.5rem;
+  --space-12:  3rem;
+  --space-16:  4rem;
+  --space-20:  5rem;
+  --space-24:  6rem;
+  --space-32:  8rem;
+  --space-40:  10rem;
+  --space-48:  12rem;
+
+  /* Stack spacing (semantic vertical rhythm) */
+  --stack-xs: var(--space-2);
+  --stack-sm: var(--space-3);
+  --stack-md: var(--space-4);
+  --stack-lg: var(--space-6);
+  --stack-xl: var(--space-10);
+
+  /* Section padding (B2B defaults; patient theme overrides below) */
+  --section-padding-y-mobile:  var(--space-12);
+  --section-padding-y-tablet:  var(--space-20);
+  --section-padding-y-desktop: var(--space-32);
+
+  /* Gutters */
+  --gutter-mobile:  var(--space-4);
+  --gutter-tablet:  var(--space-6);
+  --gutter-desktop: var(--space-8);
+
+  /* Container widths */
+  --max-width-prose:   65ch;
+  --max-width-content: 1024px;
+  --max-width-wide:    1280px;
+  --max-width-page:    1440px;
+
+  /* Radii */
+  --radius-sm:    0.25rem;
+  --radius-md:    0.5rem;
+  --radius-lg:    0.75rem;
+  --radius-xl:    1rem;
+  --radius-2xl:   1.5rem;
+  --radius-full:  9999px;
+
+  --radius-button: var(--radius-md);
+  --radius-input:  var(--radius-md);
+  --radius-card:   var(--radius-lg);
+
+  /* Shadows (light mode defaults) */
+  --shadow-none:  none;
+  --shadow-sm:    0 1px 2px 0 rgb(0 0 0 / 0.04);
+  --shadow-md:    0 4px 6px -2px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.04);
+  --shadow-lg:    0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+  --shadow-xl:    0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+  --shadow-focus: 0 0 0 3px rgb(137 0 122 / 0.35);
+
+  /* Motion */
+  --duration-instant: 0ms;
+  --duration-fast:    120ms;
+  --duration-normal:  200ms;
+  --duration-slow:    320ms;
+  --duration-slower:  500ms;
+
+  --easing-default:   cubic-bezier(0.4, 0, 0.2, 1);
+  --easing-in:        cubic-bezier(0.4, 0, 1, 1);
+  --easing-out:       cubic-bezier(0, 0, 0.2, 1);
+  --easing-emphatic:  cubic-bezier(0.2, 0, 0, 1);
+
+  /* Breakpoints (CSS-context only; Tailwind uses sm:/md:/lg:/etc.) */
+  --breakpoint-xs:  375px;
+  --breakpoint-sm:  640px;
+  --breakpoint-md:  768px;
+  --breakpoint-lg:  1024px;
+  --breakpoint-xl:  1280px;
+  --breakpoint-2xl: 1440px;
+
+  /* Z-index */
+  --z-base:     0;
+  --z-dropdown: 1000;
+  --z-sticky:   1020;
+  --z-fixed:    1030;
+  --z-modal-bg: 1040;
+  --z-modal:    1050;
+  --z-popover:  1060;
+  --z-toast:    1070;
+}
+
+/* B2B theme — light */
+[data-theme="b2b"] {
+  --color-bg-primary:        #ffffff;
+  --color-bg-secondary:      var(--neutral-50);
+  --color-bg-tertiary:       var(--neutral-100);
+  --color-bg-inverse:        var(--neutral-900);
+  --color-bg-elevated:       #ffffff;
+  --color-bg-overlay:        rgba(24, 24, 27, 0.6);
+
+  --color-text-primary:      var(--neutral-900);
+  --color-text-secondary:    var(--neutral-600);
+  --color-text-tertiary:     var(--neutral-400);
+  --color-text-inverse:      var(--neutral-50);
+  --color-text-link:         #89007a;
+  --color-text-link-hover:   #6d0062;
+
+  --color-border-primary:    var(--neutral-200);
+  --color-border-secondary:  var(--neutral-100);
+  --color-border-strong:     var(--neutral-300);
+  --color-border-focus:      #89007a;
+
+  --color-accent-primary:        #89007a;
+  --color-accent-primary-hover:  #6d0062;
+  --color-accent-primary-active: #5a0051;
+  --color-accent-primary-fg:     #ffffff;
+  --color-accent-primary-subtle: #fdf2fc;
+
+  --color-accent-secondary:      #2a6ba8;
+  --color-accent-secondary-fg:   #ffffff;
+
+  --color-status-success: var(--status-success);
+  --color-status-warning: var(--status-warning);
+  --color-status-error:   var(--status-error);
+  --color-status-info:    var(--status-info);
+}
+
+/* B2B theme — dark (generated; not auto-activated in Phase 1) */
+[data-theme="b2b"][data-mode="dark"] {
+  --color-bg-primary:        var(--neutral-950);
+  --color-bg-secondary:      var(--neutral-900);
+  --color-bg-tertiary:       var(--neutral-800);
+  --color-bg-inverse:        var(--neutral-50);
+  --color-bg-elevated:       var(--neutral-900);
+  --color-bg-overlay:        rgba(0, 0, 0, 0.75);
+
+  --color-text-primary:      var(--neutral-50);
+  --color-text-secondary:    var(--neutral-400);
+  --color-text-tertiary:     var(--neutral-500);
+  --color-text-inverse:      var(--neutral-900);
+  --color-text-link:         #e06dd4;
+  --color-text-link-hover:   #eda3e6;
+
+  --color-border-primary:    var(--neutral-800);
+  --color-border-secondary:  var(--neutral-900);
+  --color-border-strong:     var(--neutral-700);
+  --color-border-focus:      #e06dd4;
+
+  --color-accent-primary:        #c946b8;
+  --color-accent-primary-hover:  #e06dd4;
+  --color-accent-primary-active: #eda3e6;
+  --color-accent-primary-fg:     var(--neutral-950);
+  --color-accent-primary-subtle: #3a0034;
+
+  --shadow-sm:    0 1px 2px 0 rgb(0 0 0 / 0.4);
+  --shadow-md:    0 4px 6px -2px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.4);
+  --shadow-lg:    0 10px 15px -3px rgb(0 0 0 / 0.6), 0 4px 6px -4px rgb(0 0 0 / 0.5);
+  --shadow-xl:    0 20px 25px -5px rgb(0 0 0 / 0.7);
+  --shadow-focus: 0 0 0 3px rgb(224 109 212 / 0.45);
+}
+
+/* Patient theme — light (preserves the current site's warmer palette) */
+[data-theme="patient"] {
+  --color-bg-primary:        #ffffff;
+  --color-bg-secondary:      #fafafa;
+  --color-bg-tertiary:       #f4f4f5;
+  --color-bg-inverse:        #c8dfff;
+  --color-bg-elevated:       #ffffff;
+  --color-bg-overlay:        rgba(24, 24, 27, 0.5);
+
+  --color-text-primary:      var(--neutral-900);
+  --color-text-secondary:    var(--neutral-600);
+  --color-text-tertiary:     var(--neutral-400);
+  --color-text-inverse:      var(--neutral-900);
+  --color-text-link:         #89007a;
+  --color-text-link-hover:   #6d0062;
+
+  --color-border-primary:    var(--neutral-200);
+  --color-border-secondary:  var(--neutral-100);
+  --color-border-strong:     var(--neutral-300);
+  --color-border-focus:      #89007a;
+
+  --color-accent-primary:        #89007a;
+  --color-accent-primary-hover:  #6d0062;
+  --color-accent-primary-active: #5a0051;
+  --color-accent-primary-fg:     #ffffff;
+  --color-accent-primary-subtle: #fdf2fc;
+
+  --color-accent-secondary:      #459fdc;
+  --color-accent-secondary-fg:   #ffffff;
+
+  --color-accent-tertiary:       #C25BAB;
+  --color-accent-tertiary-fg:    #ffffff;
+
+  --radius-button: var(--radius-full);
+
+  --section-padding-y-mobile:  var(--space-12);
+  --section-padding-y-tablet:  var(--space-16);
+  --section-padding-y-desktop: var(--space-20);
+
+  --color-status-success: var(--status-success);
+  --color-status-warning: var(--status-warning);
+  --color-status-error:   var(--status-error);
+  --color-status-info:    var(--status-info);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast:   0ms;
+    --duration-normal: 0ms;
+    --duration-slow:   0ms;
+    --duration-slower: 0ms;
+  }
+}

@@ -6,8 +6,10 @@ export default createMiddleware(routing)
 export const config = {
   matcher: [
     // Match all pathnames except for
-    // - … if they start with `/api`, `/_next`, `/_vercel`, `/admin`
+    // - … if they start with `/api`, `/_next`, `/_vercel`, `/admin`, `/media`, `/b2b`
     // - … if they contain a dot (e.g., `favicon.ico`)
-    '/((?!api|_next|_vercel|admin|media|.*\\..*).*)',
+    // `/b2b` excluded so the new B2B route group serves without locale rewriting.
+    // When hostname middleware lands, this exclusion can be removed.
+    '/((?!api|_next|_vercel|admin|media|b2b|.*\\..*).*)',
   ],
 }
