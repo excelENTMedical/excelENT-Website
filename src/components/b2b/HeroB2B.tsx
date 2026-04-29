@@ -35,14 +35,14 @@ export default function HeroB2B() {
 
             <div className="flex flex-wrap items-center gap-x-6 gap-y-4 pt-2">
               <Link
-                href="/request-demo"
+                href="/b2b/request-demo"
                 className="btn-b2b-primary"
                 aria-label="Request a demo of the excelENT Practice Solutions platform"
               >
                 Request a Demo
               </Link>
               <Link
-                href="/how-it-works"
+                href="/b2b/how-it-works"
                 className="text-sm md:text-base font-semibold text-ink hover:text-[color:var(--color-accent-primary)] transition-colors duration-fast group inline-flex items-center gap-2"
               >
                 See how it works
