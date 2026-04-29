@@ -19,6 +19,16 @@ export default function HIPAAPage() {
 
       <section className="bg-surface border-b border-edge">
         <div className="max-w-prose mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
+          <div
+            role="note"
+            aria-label="Draft notice"
+            className="border-l-4 border-[color:var(--color-accent-primary)] bg-surface-alt p-4 md:p-5 mb-8 text-sm text-ink-secondary leading-relaxed"
+          >
+            <strong className="text-ink">Draft for review.</strong> This HIPAA
+            notice is authored as an informational summary and has not yet been
+            reviewed by counsel. The legal version will replace this page
+            before public launch.
+          </div>
           <div className="flex flex-col gap-6 text-base text-ink-secondary leading-relaxed">
             <h2 className="font-display font-bold text-xl md:text-2xl text-ink mt-2">
               HIPAA-compliant infrastructure

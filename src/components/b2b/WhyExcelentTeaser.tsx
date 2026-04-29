@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import EyebrowTag from './EyebrowTag'
 
@@ -5,26 +6,31 @@ const team: Array<{
   name: string
   title: string
   detail: string
+  headshot?: string
 }> = [
   {
     name: 'Kashif Mazhar, MD',
     title: 'CEO',
     detail: 'Practicing otolaryngologist · Raleigh, NC',
+    headshot: '/images/team/kashif-mazhar.jpg',
   },
   {
     name: 'Kevin Monty',
     title: 'Chief Revenue Officer',
     detail: '20 years partnering with ENT practices nationwide',
+    headshot: '/images/team/kevin-monty.jpg',
   },
   {
     name: 'Josh Pelger',
     title: 'Director of Clinical Solutions',
     detail: '13 years supporting ENT practices in the southeast',
+    headshot: '/images/team/josh-pelger.jpg',
   },
   {
     name: 'Eric Honsberger',
     title: 'PEAP Director',
     detail: '15 years on the East Coast ENT corridor',
+    headshot: '/images/team/eric-honsberger.jpg',
   },
 ]
 
@@ -91,18 +97,29 @@ export default function WhyExcelentTeaser() {
                   key={member.name}
                   className="bg-surface p-6 md:p-8 flex flex-col gap-3 min-h-44"
                 >
-                  {/* Initials placeholder where headshot will go */}
-                  <div
-                    aria-hidden="true"
-                    className="w-12 h-12 rounded-full bg-[color:var(--color-accent-primary-subtle)] text-[color:var(--color-accent-primary)] flex items-center justify-center font-display font-bold text-base"
-                  >
-                    {member.name
-                      .split(' ')
-                      .filter((w) => !w.endsWith(','))
-                      .slice(0, 2)
-                      .map((w) => w[0])
-                      .join('')}
-                  </div>
+                  {member.headshot ? (
+                    <div className="relative w-14 h-14 rounded-full overflow-hidden bg-surface-alt">
+                      <Image
+                        src={member.headshot}
+                        alt={`${member.name} headshot`}
+                        fill
+                        sizes="56px"
+                        className="object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      aria-hidden="true"
+                      className="w-12 h-12 rounded-full bg-[color:var(--color-accent-primary-subtle)] text-[color:var(--color-accent-primary)] flex items-center justify-center font-display font-bold text-base"
+                    >
+                      {member.name
+                        .split(' ')
+                        .filter((w) => !w.endsWith(','))
+                        .slice(0, 2)
+                        .map((w) => w[0])
+                        .join('')}
+                    </div>
+                  )}
                   <div className="flex flex-col gap-0.5 mt-auto">
                     <h3 className="font-display font-semibold text-base md:text-lg text-ink leading-snug">
                       {member.name}
@@ -117,9 +134,6 @@ export default function WhyExcelentTeaser() {
                 </li>
               ))}
             </ul>
-            <p className="text-xs text-ink-tertiary mt-4 italic">
-              Headshots forthcoming. Initials shown as placeholder.
-            </p>
           </div>
         </div>
       </div>

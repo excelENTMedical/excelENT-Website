@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 import EyebrowTag from '@/components/b2b/EyebrowTag'
 import PageHero from '@/components/b2b/PageHero'
@@ -18,6 +19,8 @@ const products: Array<{
   tag: string
   description: string
   highlights: string[]
+  image: string
+  imageAlt: string
 }> = [
   {
     name: 'BB8 Balloon',
@@ -32,6 +35,8 @@ const products: Array<{
       '100% surgical success',
       '0% intra/post-op complications',
     ],
+    image: '/images/products/bb8.png',
+    imageAlt: 'BB8 Balloon device',
   },
   {
     name: 'Microdebrider Shaver Blades',
@@ -41,6 +46,8 @@ const products: Array<{
     description:
       'Core ENT shaver blades engineered for clean tissue removal with consistent performance across procedure types.',
     highlights: ['Approved device', 'Compatible with major ENT systems'],
+    image: '/images/products/shaver-blades.png',
+    imageAlt: 'Microdebrider shaver blade tips',
   },
   {
     name: 'AllergyX Rinse Kit',
@@ -50,6 +57,8 @@ const products: Array<{
     description:
       'A nasal irrigation system designed for pre- and post-procedure patient care — easy for patients to use at home, supports better surgical outcomes.',
     highlights: ['Approved device', 'Built for patient compliance'],
+    image: '/images/products/allergyx.png',
+    imageAlt: 'AllergyX nasal rinse kit',
   },
   {
     name: 'Eustachian Tube Balloon',
@@ -59,6 +68,8 @@ const products: Array<{
     description:
       'An expansion of the BB8 platform engineered for eustachian tube dysfunction. Currently moving through regulatory approval.',
     highlights: ['Built on the BB8 platform', 'Targeted for eustachian tube dysfunction'],
+    image: '/images/products/eustachian-tube-balloon.png',
+    imageAlt: 'Eustachian Tube Balloon device prototype',
   },
 ]
 
@@ -98,6 +109,15 @@ export default function ProductsOverviewPage() {
                         {isPending ? 'Coming soon' : 'Available now'}
                       </EyebrowTag>
                       <span className="text-xs text-ink-tertiary">{p.tag}</span>
+                    </div>
+                    <div className="bg-surface-alt border border-edge aspect-[16/9] flex items-center justify-center mb-6 overflow-hidden">
+                      <Image
+                        src={p.image}
+                        alt={p.imageAlt}
+                        width={520}
+                        height={293}
+                        className="max-w-full max-h-full w-auto h-auto object-contain p-4"
+                      />
                     </div>
                     <h3 className="font-display font-bold text-2xl md:text-3xl text-ink leading-snug">
                       {p.name}

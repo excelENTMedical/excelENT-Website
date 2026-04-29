@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 import EyebrowTag from '@/components/b2b/EyebrowTag'
 import PageHero from '@/components/b2b/PageHero'
@@ -55,6 +56,23 @@ export default function ShaverBladesPage() {
           </Link>
         </div>
       </PageHero>
+
+      <section
+        aria-label="Shaver blades"
+        className="bg-surface-alt border-b border-edge"
+      >
+        <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+          <div className="bg-surface border border-edge p-8 md:p-12 max-w-3xl mx-auto flex items-center justify-center">
+            <Image
+              src="/images/products/shaver-blades.png"
+              alt="excelENT microdebrider shaver blades — close-up of two consumable cutter tips with x|cutter branding"
+              width={520}
+              height={410}
+              className="max-w-full h-auto"
+            />
+          </div>
+        </div>
+      </section>
 
       <section
         aria-labelledby="features-heading"

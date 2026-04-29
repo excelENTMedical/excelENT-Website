@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 import EyebrowTag from '@/components/b2b/EyebrowTag'
 import PageHero from '@/components/b2b/PageHero'
@@ -113,23 +114,20 @@ export default function BB8Page() {
         </div>
       </PageHero>
 
-      {/* Product image placeholder slot */}
       <section
-        aria-label="BB8 product visual"
+        aria-label="BB8 device"
         className="bg-surface-alt border-b border-edge"
       >
         <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-          <div className="border border-dashed border-edge-strong bg-surface aspect-[16/9] flex items-center justify-center">
-            <div className="text-center px-6">
-              <p className="eyebrow mb-2 text-ink-tertiary">Asset placeholder</p>
-              <p className="font-display text-lg md:text-xl text-ink-secondary">
-                BB8 5-functions-in-1 diagram
-              </p>
-              <p className="text-sm text-ink-tertiary mt-2 max-w-md mx-auto">
-                Replace with /public/images/products/bb8-5-in-1.svg (or .png)
-                when the diagram lands.
-              </p>
-            </div>
+          <div className="bg-surface border border-edge p-8 md:p-12 lg:p-16 flex items-center justify-center">
+            <Image
+              src="/images/products/bb8.png"
+              alt="BB8 Balloon device — single-use ENT balloon dilation tool with light-guided navigation, malleable tip, integrated suction and irrigation"
+              width={930}
+              height={520}
+              priority
+              className="max-w-full h-auto"
+            />
           </div>
         </div>
       </section>

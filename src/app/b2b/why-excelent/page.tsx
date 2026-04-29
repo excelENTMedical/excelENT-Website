@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import EyebrowTag from '@/components/b2b/EyebrowTag'
 import PageHero from '@/components/b2b/PageHero'
 import Stat from '@/components/b2b/Stat'
@@ -15,30 +16,35 @@ const team: Array<{
   title: string
   bio: string
   detail: string
+  headshot?: string
 }> = [
   {
     name: 'Kashif Mazhar, MD',
     title: 'Chief Executive Officer',
     bio: 'A practicing otolaryngologist in Raleigh, NC. Brings the operating-room and clinical perspective that drives every product decision.',
     detail: 'Practicing otolaryngologist · Raleigh, NC',
+    headshot: '/images/team/kashif-mazhar.jpg',
   },
   {
     name: 'Kevin Monty',
     title: 'Chief Revenue Officer',
     bio: '30+ years of medical-device experience and $1B+ in value created across ENT-focused startups. Has partnered with hundreds of practices nationwide.',
     detail: '30+ years medical-device experience',
+    headshot: '/images/team/kevin-monty.jpg',
   },
   {
     name: 'Josh Pelger',
     title: 'Director of Clinical Solutions',
     bio: '13 years of ENT-specific expertise focused on patient journey, physician partnerships, and the practical implementation of new clinical workflows.',
     detail: '13 years supporting ENT practices in the southeast',
+    headshot: '/images/team/josh-pelger.jpg',
   },
   {
     name: 'Eric Honsberger',
     title: 'PEAP Director',
     bio: '15 years on the East Coast ENT corridor. Leads patient engagement, acquisition, and partnership strategy across PS | Connect markets.',
     detail: '15 years on the East Coast ENT corridor',
+    headshot: '/images/team/eric-honsberger.jpg',
   },
 ]
 
@@ -158,17 +164,29 @@ export default function WhyExcelentPage() {
                 key={member.name}
                 className="bg-surface p-8 md:p-10 flex flex-col gap-4 min-h-60"
               >
-                <div
-                  aria-hidden="true"
-                  className="w-14 h-14 rounded-full bg-[color:var(--color-accent-primary-subtle)] text-[color:var(--color-accent-primary)] flex items-center justify-center font-display font-bold text-lg"
-                >
-                  {member.name
-                    .split(' ')
-                    .filter((w) => !w.endsWith(','))
-                    .slice(0, 2)
-                    .map((w) => w[0])
-                    .join('')}
-                </div>
+                {member.headshot ? (
+                  <div className="relative w-20 h-20 rounded-full overflow-hidden bg-surface-alt">
+                    <Image
+                      src={member.headshot}
+                      alt={`${member.name} headshot`}
+                      fill
+                      sizes="80px"
+                      className="object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div
+                    aria-hidden="true"
+                    className="w-14 h-14 rounded-full bg-[color:var(--color-accent-primary-subtle)] text-[color:var(--color-accent-primary)] flex items-center justify-center font-display font-bold text-lg"
+                  >
+                    {member.name
+                      .split(' ')
+                      .filter((w) => !w.endsWith(','))
+                      .slice(0, 2)
+                      .map((w) => w[0])
+                      .join('')}
+                  </div>
+                )}
                 <div className="flex flex-col gap-1 mt-2">
                   <h3 className="font-display font-bold text-xl md:text-2xl text-ink leading-snug">
                     {member.name}
@@ -186,9 +204,6 @@ export default function WhyExcelentPage() {
               </li>
             ))}
           </ul>
-          <p className="text-xs text-ink-tertiary mt-4 italic">
-            Headshots forthcoming. Initials shown as placeholder.
-          </p>
         </div>
       </section>
 

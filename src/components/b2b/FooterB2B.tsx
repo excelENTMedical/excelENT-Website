@@ -122,6 +122,14 @@ export default function FooterB2B() {
                   Terms
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/b2b/cookies"
+                  className="hover:text-ink transition-colors duration-fast"
+                >
+                  Cookies
+                </Link>
+              </li>
             </ul>
           </nav>
         </div>
