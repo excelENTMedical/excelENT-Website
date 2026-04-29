@@ -161,7 +161,7 @@
 
   --color-text-primary:      var(--neutral-900);
   --color-text-secondary:    var(--neutral-600);
-  --color-text-tertiary:     var(--neutral-400);
+  --color-text-tertiary:     var(--neutral-500);
   --color-text-inverse:      var(--neutral-50);
   --color-text-link:         #89007a;
   --color-text-link-hover:   #6d0062;
@@ -231,7 +231,7 @@
 
   --color-text-primary:      var(--neutral-900);
   --color-text-secondary:    var(--neutral-600);
-  --color-text-tertiary:     var(--neutral-400);
+  --color-text-tertiary:     var(--neutral-500);
   --color-text-inverse:      var(--neutral-900);
   --color-text-link:         #89007a;
   --color-text-link-hover:   #6d0062;

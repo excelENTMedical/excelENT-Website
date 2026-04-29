@@ -28,10 +28,7 @@ export default function Stat({
 
   return (
     <div className="flex flex-col gap-2">
-      <div
-        className={`stat-display ${sizeMap[size]} ${valueColor}`}
-        aria-label={`${value} ${label}`}
-      >
+      <div className={`stat-display ${sizeMap[size]} ${valueColor}`}>
         {value}
       </div>
       <div

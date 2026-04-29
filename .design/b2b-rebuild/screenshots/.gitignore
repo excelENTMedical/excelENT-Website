@@ -1,0 +1,3 @@
+# Crops are intermediate artifacts derived from the canonical full-page
+# screenshots. Regenerable; keep out of git.
+crops/

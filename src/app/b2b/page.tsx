@@ -1,24 +1,34 @@
 import HeroB2B from '@/components/b2b/HeroB2B'
 import ProofMetricStrip from '@/components/b2b/ProofMetricStrip'
+import ProblemFramingGrid from '@/components/b2b/ProblemFramingGrid'
+import ThreePillarsSection from '@/components/b2b/ThreePillarsSection'
+import PlatformOverviewSection from '@/components/b2b/PlatformOverviewSection'
 import SolutionTile from '@/components/b2b/SolutionTile'
 import EyebrowTag from '@/components/b2b/EyebrowTag'
+import CustomerLogoStrip from '@/components/b2b/CustomerLogoStrip'
+import CaseStudyBlock from '@/components/b2b/CaseStudyBlock'
+import WhyExcelentTeaser from '@/components/b2b/WhyExcelentTeaser'
+import InlineDemoCTA from '@/components/b2b/InlineDemoCTA'
 
 export default function B2BHomePage() {
   return (
     <>
       <HeroB2B />
       <ProofMetricStrip />
+      <ProblemFramingGrid />
+      <ThreePillarsSection />
+      <PlatformOverviewSection />
 
       <section
         aria-labelledby="solutions-heading"
-        className="border-b border-edge"
+        className="bg-surface border-b border-edge"
       >
         <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-32">
           <div className="flex flex-col gap-3 max-w-3xl mb-12 md:mb-16">
-            <EyebrowTag tone="default">Practice Solutions</EyebrowTag>
+            <EyebrowTag tone="accent">Practice Solutions</EyebrowTag>
             <h2
               id="solutions-heading"
-              className="font-display font-bold tracking-tight leading-tight text-3xl md:text-4xl lg:text-5xl text-ink text-balance"
+              className="font-display font-bold tracking-tight leading-[1.1] text-3xl md:text-4xl lg:text-5xl text-ink text-balance"
             >
               The full operations stack for independent ENT practices.
             </h2>
@@ -65,6 +75,11 @@ export default function B2BHomePage() {
           </div>
         </div>
       </section>
+
+      <CustomerLogoStrip />
+      <CaseStudyBlock />
+      <WhyExcelentTeaser />
+      <InlineDemoCTA />
     </>
   )
 }

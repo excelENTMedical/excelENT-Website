@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import ArrowRight from './ArrowRight'
 import EyebrowTag from './EyebrowTag'
 
 export default function SolutionTile({
@@ -47,12 +48,7 @@ export default function SolutionTile({
 
       <div className="mt-8 pt-6 border-t border-edge inline-flex items-center gap-2 text-sm font-semibold text-ink group-hover:text-[color:var(--color-accent-primary)] transition-colors duration-fast">
         Explore {productLabel}
-        <span
-          aria-hidden="true"
-          className="transition-transform duration-fast group-hover:translate-x-1"
-        >
-          →
-        </span>
+        <ArrowRight className="transition-transform duration-fast group-hover:translate-x-1" />
       </div>
     </Link>
   )

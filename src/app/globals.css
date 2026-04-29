@@ -123,4 +123,29 @@
   .text-balance {
     text-wrap: balance;
   }
+  .bg-surface-translucent {
+    background-color: color-mix(
+      in srgb,
+      var(--color-bg-primary) 95%,
+      transparent
+    );
+  }
+  .bg-surface-translucent-strong {
+    background-color: color-mix(
+      in srgb,
+      var(--color-bg-primary) 80%,
+      transparent
+    );
+  }
+}
+
+/* B2B-scoped focus-visible coverage: every interactive element gets a
+   visible ring without each component opting in. Ring color is the same
+   purple accent used everywhere else, so it reads as part of the system. */
+[data-theme="b2b"] a:focus-visible,
+[data-theme="b2b"] button:focus-visible,
+[data-theme="b2b"] [role="button"]:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--radius-sm);
 }

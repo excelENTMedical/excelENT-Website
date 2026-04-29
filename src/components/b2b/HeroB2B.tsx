@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import ArrowRight from './ArrowRight'
 import EyebrowTag from './EyebrowTag'
 import Stat from './Stat'
 
@@ -9,7 +10,7 @@ export default function HeroB2B() {
       className="border-b border-edge"
     >
       <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-32">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-stretch">
           {/* Left column — headline + CTAs */}
           <div className="lg:col-span-7 flex flex-col gap-6 md:gap-8">
             <EyebrowTag tone="accent">
@@ -18,12 +19,9 @@ export default function HeroB2B() {
 
             <h1
               id="hero-headline"
-              className="font-display font-bold tracking-tight leading-[1.05] text-ink text-balance text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-[5.5rem]"
+              className="font-display font-bold tracking-tight leading-[1.05] text-ink text-balance text-4xl sm:text-5xl md:text-6xl lg:text-7xl"
             >
-              More Patients.
-              <br />
-              Better Operations.
-              <br />
+              More Patients. Better Operations.{' '}
               <span className="text-[color:var(--color-accent-primary)]">
                 Stronger Revenue.
               </span>
@@ -45,15 +43,10 @@ export default function HeroB2B() {
               </Link>
               <Link
                 href="/how-it-works"
-                className="text-sm md:text-base font-semibold text-ink hover:text-[color:var(--color-accent-primary)] transition-colors duration-fast group inline-flex items-center gap-1.5"
+                className="text-sm md:text-base font-semibold text-ink hover:text-[color:var(--color-accent-primary)] transition-colors duration-fast group inline-flex items-center gap-2"
               >
                 See how it works
-                <span
-                  aria-hidden="true"
-                  className="transition-transform duration-fast group-hover:translate-x-1"
-                >
-                  →
-                </span>
+                <ArrowRight className="transition-transform duration-fast group-hover:translate-x-1" />
               </Link>
             </div>
           </div>
