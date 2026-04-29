@@ -27,7 +27,6 @@ export default function Hero({
 }: HeroProps) {
   const t = useTranslations('home')
   const tLanding = useTranslations('landing')
-  const tCommon = useTranslations('common')
 
   const displayHeadline = locationName
     ? tLanding('heroHeadline', { location: locationName })
@@ -41,7 +40,7 @@ export default function Hero({
     ? tLanding('ctaButton', { location: locationName })
     : ctaText || t('ctaButton')
 
-  // Landing page variant: full-width gradient
+  // Landing page variant: gradient background with optional image
   if (locationName) {
     return (
       <section className="relative bg-gradient-to-br from-primary-900 via-primary-800 to-primary-700 text-white overflow-hidden">
@@ -120,38 +119,34 @@ export default function Hero({
     )
   }
 
-  // Homepage variant: split layout matching WordPress
+  // Homepage variant: full-width background image with centered overlay (matches WordPress)
   return (
-    <section className="relative bg-gradient-to-br from-primary-900 via-primary-800 to-primary-700 text-white overflow-hidden">
-      <div className="container-custom">
-        <div className="grid lg:grid-cols-2 gap-8 items-center">
-          {/* Left: Text content */}
-          <div className="py-20 md:py-28 lg:py-36">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold font-heading tracking-tight text-white mb-6 text-balance leading-tight">
-              {displayHeadline}
-            </h1>
-            <p className="text-lg md:text-xl text-primary-100 mb-10 leading-relaxed">
-              {displaySubheadline}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link href={ctaLink} className="btn-primary text-base px-8 py-3">
-                {displayCta}
-              </Link>
-            </div>
-          </div>
+    <section className="relative min-h-[500px] md:min-h-[600px] lg:min-h-[700px] text-white overflow-hidden">
+      {/* Background image */}
+      <div className="absolute inset-0">
+        <Image
+          src={backgroundImage || '/images/hero-main.png'}
+          alt=""
+          fill
+          className="object-cover"
+          priority
+        />
+        {/* Dark overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-r from-primary-900/80 via-primary-900/60 to-primary-800/40" />
+      </div>
 
-          {/* Right: Hero Image */}
-          <div className="relative hidden lg:block">
-            <div className="relative h-[550px] overflow-hidden">
-              <Image
-                src="/images/hero-main.png"
-                alt="Sinus Care Specialists"
-                fill
-                className="object-contain object-center"
-                priority
-              />
-            </div>
-          </div>
+      {/* Centered content */}
+      <div className="relative container-custom flex items-center justify-center min-h-[500px] md:min-h-[600px] lg:min-h-[700px]">
+        <div className="text-center max-w-3xl mx-auto py-20 md:py-28">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold font-heading tracking-tight text-white mb-6 leading-tight">
+            {displayHeadline}
+          </h1>
+          <p className="text-lg md:text-xl lg:text-2xl text-white/90 mb-10 leading-relaxed max-w-2xl mx-auto">
+            {displaySubheadline}
+          </p>
+          <Link href={ctaLink} className="btn-primary text-base md:text-lg px-10 py-4">
+            {displayCta}
+          </Link>
         </div>
       </div>
     </section>

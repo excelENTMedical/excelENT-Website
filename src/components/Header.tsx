@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Link, usePathname } from '@/i18n/routing'
-import LanguageSwitcher from './LanguageSwitcher'
 import Image from 'next/image'
 
 export default function Header() {
@@ -77,7 +76,9 @@ export default function Header() {
 
             {/* Right side actions */}
             <div className="hidden lg:flex items-center space-x-4">
-              <LanguageSwitcher />
+              <Link href="/find-specialist" className="btn-primary text-sm px-6 py-2.5">
+                {t('findSpecialist')}
+              </Link>
             </div>
 
             {/* Mobile menu button */}
@@ -129,8 +130,7 @@ export default function Header() {
                     {item.label}
                   </Link>
                 ))}
-                <div className="pt-4 border-t flex items-center justify-between">
-                  <LanguageSwitcher />
+                <div className="pt-4 border-t">
                   <Link
                     href="/find-specialist"
                     className="btn-primary text-sm"

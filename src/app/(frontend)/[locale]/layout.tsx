@@ -4,6 +4,7 @@ import { getMessages, unstable_setRequestLocale } from 'next-intl/server'
 import { Cabin, Montserrat } from 'next/font/google'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import FloatingLanguageSwitcher from '@/components/FloatingLanguageSwitcher'
 import '../../globals.css'
 
 const cabin = Cabin({
@@ -46,6 +47,7 @@ export default async function LocaleLayout({
           <Header />
           <main className="flex-grow">{children}</main>
           <Footer />
+          <FloatingLanguageSwitcher />
         </NextIntlClientProvider>
       </body>
     </html>
