@@ -1,5 +1,4 @@
 import EyebrowTag from './EyebrowTag'
-import Stat from './Stat'
 
 const metrics: Array<{
   value: string
@@ -8,23 +7,23 @@ const metrics: Array<{
 }> = [
   {
     value: '265K',
-    label: 'Patients reached',
+    label: 'Patients Reached',
     caption:
       'Website visits driving sinusitis awareness across regional markets',
   },
   {
     value: '192',
-    label: 'Kept appointments',
+    label: 'Kept Appointments',
     caption: 'Initial visits delivered to partner practices via PS | Connect',
   },
   {
     value: '100%',
-    label: 'BB8 surgical success',
+    label: 'BB8 Surgical Success',
     caption: '750+ patients · 3,000+ sinuses · zero intra-op complications',
   },
   {
     value: '2.5%',
-    label: 'RCM denial rate',
+    label: 'RCM Denial Rate',
     caption: 'vs 11.8% industry baseline (Aptarro, 2026)',
   },
 ]
@@ -33,22 +32,23 @@ export default function ProofMetricStrip() {
   return (
     <section
       aria-labelledby="proof-strip-heading"
-      className="bg-surface-alt border-y border-edge relative"
+      className="relative"
+      style={{ background: '#061b42' }}
     >
       {/* Top accent line in brand purple — Swiss "register mark" punctuation */}
       <div
         aria-hidden="true"
         className="absolute top-0 left-0 right-0 h-px bg-[color:var(--color-accent-primary)]"
       />
-      <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20 lg:py-24">
+      <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">
         <div className="flex flex-col gap-12 md:gap-14">
           <div className="flex flex-col gap-3 max-w-3xl">
-            <EyebrowTag tone="accent">By the numbers</EyebrowTag>
+            <EyebrowTag tone="inverse">By the numbers</EyebrowTag>
             <h2
               id="proof-strip-heading"
-              className="font-display font-bold tracking-tight leading-tight text-2xl md:text-3xl lg:text-4xl text-ink text-balance"
+              className="font-display font-bold tracking-tight leading-tight text-2xl md:text-3xl lg:text-4xl text-white text-balance"
             >
-              Real partner practices. Real numbers. No marketing hand-waves.
+              Real partner practices. Real numbers. No empty marketing promises.
             </h2>
           </div>
 
@@ -57,24 +57,21 @@ export default function ProofMetricStrip() {
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 md:gap-8 lg:gap-12"
           >
             {metrics.map((m) => (
-              <li
-                key={m.label}
-                className="flex flex-col border-l-2 border-[color:var(--color-accent-primary)] pl-5 md:pl-6"
-              >
-                <Stat
-                  value={m.value}
-                  label={m.label}
-                  caption={m.caption}
-                  size="lg"
-                />
+              <li key={m.label} className="flex flex-col gap-2 text-white">
+                <div className="stat-display text-5xl md:text-6xl text-white">
+                  {m.value}
+                </div>
+                <div className="text-sm md:text-base font-semibold text-white leading-snug">
+                  {m.label}
+                </div>
+                {m.caption && (
+                  <div className="text-xs md:text-sm text-white leading-snug">
+                    {m.caption}
+                  </div>
+                )}
               </li>
             ))}
           </ul>
-
-          <p className="text-xs md:text-sm text-ink-tertiary max-w-3xl">
-            Sources: excelENT Practice Solutions Overview (March 2026); Aptarro
-            US Healthcare Denial Rates 2026; internal partner-practice data.
-          </p>
         </div>
       </div>
     </section>

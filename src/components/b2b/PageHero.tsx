@@ -16,8 +16,8 @@ export default function PageHero({
 }) {
   const padY =
     variant === 'compact'
-      ? 'py-12 md:py-16 lg:py-20'
-      : 'py-16 md:py-24 lg:py-28'
+      ? 'py-10 md:py-12 lg:py-16'
+      : 'py-12 md:py-20 lg:py-24'
 
   return (
     <section

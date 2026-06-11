@@ -55,7 +55,7 @@ export default function DemoForm() {
       <div
         role="status"
         aria-live="polite"
-        className="border border-edge bg-surface-alt p-8 md:p-10 flex flex-col gap-4"
+        className="border-l-4 border-[color:var(--color-accent-primary)] bg-surface-alt p-8 md:p-10 flex flex-col gap-4"
       >
         <h2 className="font-display font-bold text-2xl md:text-3xl text-ink leading-snug">
           Thanks — we&rsquo;ll be in touch within one business day.
@@ -91,32 +91,32 @@ export default function DemoForm() {
     <form
       onSubmit={handleSubmit}
       noValidate
-      className="border border-edge p-8 md:p-10 flex flex-col gap-6 bg-surface"
+      className="border-l-4 border-[color:var(--color-accent-primary)] p-8 md:p-10 flex flex-col gap-6 bg-surface"
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Field
-          label="Full name"
+          label="Full Name"
           name="name"
           type="text"
           autoComplete="name"
           required
         />
         <Field
-          label="Work email"
+          label="Work Email"
           name="email"
           type="email"
           autoComplete="email"
           required
         />
         <Field
-          label="Practice name"
+          label="Practice Name"
           name="practice"
           type="text"
           autoComplete="organization"
           required
         />
         <Field
-          label="Your role"
+          label="Your Role"
           name="role"
           type="text"
           autoComplete="organization-title"
@@ -124,13 +124,13 @@ export default function DemoForm() {
           required
         />
         <Select
-          label="Number of providers"
+          label="Number of Providers"
           name="providers"
           required
           options={PROVIDER_RANGES}
         />
         <Field
-          label="Phone (optional)"
+          label="Phone (Optional)"
           name="phone"
           type="tel"
           autoComplete="tel"
@@ -149,9 +149,9 @@ export default function DemoForm() {
         </summary>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
           <Field label="Current EMR / EHR" name="emr" type="text" />
-          <Field label="Current RCM provider" name="rcm" type="text" />
+          <Field label="Current RCM Provider" name="rcm" type="text" />
           <Textarea
-            label="What's your biggest pain right now?"
+            label="What's Your Biggest Pain Right Now?"
             name="pain"
             rows={3}
             className="md:col-span-2"

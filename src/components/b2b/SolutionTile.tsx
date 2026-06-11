@@ -19,7 +19,7 @@ export default function SolutionTile({
     <Link
       href={href}
       aria-label={`${productLabel} — ${title}. Learn more.`}
-      className="group flex flex-col h-full bg-surface p-6 md:p-8 lg:p-10 hover:bg-surface-alt transition-colors duration-normal focus-visible:outline-none focus-visible:shadow-focus"
+      className="group flex flex-col h-full bg-surface p-6 md:p-8 lg:p-10 border-l-4 border-[color:var(--color-accent-primary)] hover:bg-surface-alt transition-colors duration-normal focus-visible:outline-none focus-visible:shadow-focus"
     >
       <EyebrowTag tone="accent">{productLabel}</EyebrowTag>
 

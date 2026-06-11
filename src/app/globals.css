@@ -10,7 +10,7 @@
   }
 
   body {
-    @apply antialiased text-gray-900 text-base md:text-lg;
+    @apply antialiased text-gray-900 text-lg md:text-xl;
   }
 }
 
@@ -60,15 +60,15 @@
   /* B2B-flavored buttons (Swiss restraint, 8px radius via --radius-button) */
   .btn-b2b-primary {
     @apply inline-flex items-center justify-center px-6 py-3 text-base font-semibold transition-colors duration-200;
-    background: var(--color-accent-primary);
-    color: var(--color-accent-primary-fg);
+    background: var(--color-cta-primary);
+    color: var(--color-cta-primary-fg);
     border-radius: var(--radius-button);
   }
   .btn-b2b-primary:hover {
-    background: var(--color-accent-primary-hover);
+    background: var(--color-cta-primary-hover);
   }
   .btn-b2b-primary:active {
-    background: var(--color-accent-primary-active);
+    background: var(--color-cta-primary-active);
   }
   .btn-b2b-primary:focus-visible {
     box-shadow: var(--shadow-focus);
@@ -149,3 +149,246 @@
   box-shadow: var(--shadow-focus);
   border-radius: var(--radius-sm);
 }
+
+/* ============================================================
+   Patient theme — editorial-medical + warm magazine
+   See /.design/patient-rebuild/DESIGN_TOKENS.md for the full spec
+   ============================================================ */
+
+@layer components {
+  /* Buttons — pill, three variants × five sizes */
+  .btn-patient-primary,
+  .btn-patient-secondary,
+  .btn-patient-text {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    font-family: var(--font-cabin), system-ui, sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--duration-fast) var(--easing-default),
+                color var(--duration-fast) var(--easing-default),
+                border-color var(--duration-fast) var(--easing-default),
+                transform var(--duration-fast) var(--easing-default),
+                gap var(--duration-fast) var(--easing-default);
+  }
+  .btn-patient-primary {
+    padding: var(--cta-padding-md);
+    font-size: var(--cta-font-md);
+    background: var(--color-accent-primary);
+    color: var(--color-accent-primary-fg);
+    border: 0;
+    border-radius: var(--radius-button);
+  }
+  .btn-patient-primary:hover { background: var(--color-accent-primary-hover); }
+  .btn-patient-primary:active { background: var(--color-accent-primary-active); transform: translateY(1px); }
+  .btn-patient-primary:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+
+  .btn-patient-secondary {
+    padding: var(--cta-padding-md);
+    font-size: var(--cta-font-md);
+    background: transparent;
+    color: var(--color-text-primary);
+    border: 1.5px solid var(--color-border-strong);
+    border-radius: var(--radius-button);
+  }
+  .btn-patient-secondary:hover { background: var(--color-bg-tertiary); border-color: var(--color-text-primary); }
+  .btn-patient-secondary:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+
+  .btn-patient-text {
+    padding: 0;
+    font-size: var(--cta-font-md);
+    color: var(--color-accent-primary);
+    background: transparent;
+    border: 0;
+    border-radius: var(--radius-sm);
+  }
+  .btn-patient-text:hover { gap: var(--space-3); color: var(--color-accent-primary-hover); }
+  .btn-patient-text:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+
+  /* Size modifiers — compose with any of the three variants */
+  .btn-patient-xs { padding: var(--cta-padding-xs); font-size: var(--cta-font-xs); }
+  .btn-patient-sm { padding: var(--cta-padding-sm); font-size: var(--cta-font-sm); }
+  .btn-patient-lg { padding: var(--cta-padding-lg); font-size: var(--cta-font-lg); }
+  .btn-patient-xl { padding: var(--cta-padding-xl); font-size: var(--cta-font-xl); font-weight: 700; }
+  .btn-patient-text.btn-patient-xs,
+  .btn-patient-text.btn-patient-sm,
+  .btn-patient-text.btn-patient-lg,
+  .btn-patient-text.btn-patient-xl { padding: 0; }
+
+  /* Editorial display headings */
+  .heading-display-patient {
+    font-family: var(--font-cabin), system-ui, sans-serif;
+    font-size: clamp(var(--font-size-4xl), 8vw, var(--font-size-6xl));
+    font-weight: 700;
+    line-height: var(--line-height-tight);
+    letter-spacing: var(--letter-spacing-tight);
+  }
+  .heading-1-patient {
+    font-family: var(--font-cabin), system-ui, sans-serif;
+    font-size: clamp(var(--font-size-3xl), 5vw, var(--font-size-5xl));
+    font-weight: 700;
+    line-height: var(--line-height-snug);
+    letter-spacing: var(--letter-spacing-snug);
+  }
+  .heading-2-patient {
+    font-family: var(--font-cabin), system-ui, sans-serif;
+    font-size: clamp(var(--font-size-2xl), 4vw, var(--font-size-4xl));
+    font-weight: 700;
+    line-height: var(--line-height-snug);
+  }
+  .heading-3-patient {
+    font-family: var(--font-cabin), system-ui, sans-serif;
+    font-size: var(--font-size-2xl);
+    font-weight: 600;
+    line-height: var(--line-height-normal);
+  }
+  .eyebrow-patient {
+    font-family: var(--font-cabin), system-ui, sans-serif;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: var(--letter-spacing-widest);
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+  }
+  .body-lead-patient {
+    font-family: var(--font-cabin), system-ui, sans-serif;
+    font-size: clamp(var(--font-size-md), 2vw, var(--font-size-lg));
+    font-weight: 400;
+    line-height: var(--line-height-relaxed);
+    color: var(--color-text-secondary);
+  }
+  .body-patient {
+    font-family: var(--font-cabin), system-ui, sans-serif;
+    font-size: clamp(var(--font-size-base), 1.5vw, var(--font-size-md));
+    font-weight: 400;
+    line-height: var(--line-height-relaxed);
+    color: var(--color-text-primary);
+  }
+  .body-longform-patient {
+    font-family: var(--font-cabin), system-ui, sans-serif;
+    font-size: var(--font-size-md);
+    font-weight: 400;
+    line-height: var(--line-height-loose);
+    color: var(--color-text-primary);
+    max-width: var(--max-width-prose);
+  }
+  .stat-display-patient {
+    font-family: var(--font-cabin), system-ui, sans-serif;
+    font-size: clamp(var(--font-size-4xl), 6vw, var(--font-size-6xl));
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: var(--letter-spacing-tight);
+    font-variant-numeric: tabular-nums;
+    color: var(--color-accent-primary);
+  }
+
+  /* Editorial-only utilities */
+  .pull-quote {
+    font-family: var(--font-cabin), system-ui, sans-serif;
+    font-style: italic;
+    font-size: clamp(var(--font-size-2xl), 3.5vw, var(--font-size-4xl));
+    font-weight: 500;
+    line-height: var(--line-height-normal);
+    color: var(--color-text-primary);
+    border-left: 3px solid var(--color-accent-primary);
+    padding-left: var(--space-6);
+    max-width: 28ch;
+  }
+  .byline {
+    font-family: var(--font-cabin), system-ui, sans-serif;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+  }
+  .byline-meta {
+    font-family: var(--font-cabin), system-ui, sans-serif;
+    font-size: var(--font-size-xs);
+    font-weight: 400;
+    letter-spacing: var(--letter-spacing-wide);
+    text-transform: uppercase;
+    color: var(--color-text-tertiary);
+  }
+  .figure-caption {
+    font-family: var(--font-cabin), system-ui, sans-serif;
+    font-size: var(--font-size-sm);
+    font-style: italic;
+    line-height: var(--line-height-normal);
+    color: var(--color-text-tertiary);
+    margin-top: var(--space-2);
+  }
+  .lead-paragraph {
+    font-family: var(--font-cabin), system-ui, sans-serif;
+    font-size: var(--font-size-lg);
+    font-weight: 400;
+    line-height: var(--line-height-relaxed);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-8);
+    max-width: var(--max-width-prose);
+  }
+  .drop-cap > p:first-of-type::first-letter {
+    font-family: var(--font-cabin), system-ui, sans-serif;
+    font-weight: 700;
+    font-size: 4.5em;
+    line-height: 0.85;
+    float: left;
+    margin: 0.05em 0.08em 0 0;
+    color: var(--color-accent-primary);
+  }
+
+  /* Long-form prose styles for ConditionContent (uses .prose-patient class) */
+  .prose-patient {
+    font-family: var(--font-cabin), system-ui, sans-serif;
+    font-size: var(--font-size-md);
+    line-height: var(--line-height-loose);
+    color: var(--color-text-primary);
+    max-width: var(--max-width-prose);
+  }
+  .prose-patient > * + * { margin-top: var(--space-6); }
+  .prose-patient h2 {
+    font-family: var(--font-cabin), system-ui, sans-serif;
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    line-height: var(--line-height-snug);
+    margin-top: var(--space-12);
+  }
+  .prose-patient h3 {
+    font-family: var(--font-cabin), system-ui, sans-serif;
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+    line-height: var(--line-height-normal);
+    margin-top: var(--space-8);
+  }
+  .prose-patient a { color: var(--color-text-link); text-decoration: underline; text-underline-offset: 3px; }
+  .prose-patient a:hover { color: var(--color-text-link-hover); }
+  .prose-patient ul, .prose-patient ol { padding-left: var(--space-6); }
+  .prose-patient ul { list-style: disc; }
+  .prose-patient ol { list-style: decimal; }
+  .prose-patient li + li { margin-top: var(--space-2); }
+  .prose-patient blockquote {
+    font-family: var(--font-cabin), system-ui, sans-serif;
+    font-style: italic;
+    font-size: var(--font-size-lg);
+    border-left: 3px solid var(--color-accent-primary);
+    padding-left: var(--space-6);
+    color: var(--color-text-secondary);
+  }
+  .prose-patient strong { font-weight: 600; color: var(--color-text-primary); }
+}
+
+/* Patient-scoped focus-visible, parallel to B2B */
+[data-theme="patient"] a:focus-visible,
+[data-theme="patient"] button:focus-visible,
+[data-theme="patient"] [role="button"]:focus-visible,
+[data-theme="patient"] input:focus-visible,
+[data-theme="patient"] select:focus-visible,
+[data-theme="patient"] textarea:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--radius-sm);
+}
+
+/* Hide body scroll when modal is open */
+body.modal-open { overflow: hidden; }

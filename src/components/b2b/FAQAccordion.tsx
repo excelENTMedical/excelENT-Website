@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import EyebrowTag from './EyebrowTag'
 
 export type FAQItem = { question: string; answer: string }
@@ -8,7 +9,7 @@ export default function FAQAccordion({
   items,
 }: {
   eyebrow?: string
-  title?: string
+  title?: ReactNode
   items: FAQItem[]
 }) {
   return (

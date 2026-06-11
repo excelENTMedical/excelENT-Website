@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-type Tone = 'default' | 'accent' | 'inverse'
+type Tone = 'default' | 'accent' | 'navy' | 'inverse'
 
 export default function EyebrowTag({
   children,
@@ -16,9 +16,11 @@ export default function EyebrowTag({
   const toneClass =
     tone === 'accent'
       ? 'text-[color:var(--color-accent-primary)]'
-      : tone === 'inverse'
-        ? 'text-[color:var(--color-text-inverse)]'
-        : 'text-ink-secondary'
+      : tone === 'navy'
+        ? 'text-[#061b42]'
+        : tone === 'inverse'
+          ? 'text-[color:var(--color-text-inverse)]'
+          : 'text-ink-secondary'
 
   return (
     <As className={`eyebrow ${toneClass} ${className}`.trim()}>{children}</As>

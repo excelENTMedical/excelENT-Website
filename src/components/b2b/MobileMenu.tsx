@@ -3,7 +3,11 @@
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 
-export type NavItem = { label: string; href: string }
+export type NavItem = {
+  label: string
+  href: string
+  children?: NavItem[]
+}
 
 export default function MobileMenu({ navItems }: { navItems: NavItem[] }) {
   const [open, setOpen] = useState(false)
@@ -104,14 +108,29 @@ export default function MobileMenu({ navItems }: { navItems: NavItem[] }) {
             className="flex flex-col flex-1 px-4 sm:px-6 py-6 gap-1 overflow-y-auto"
           >
             {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className="text-2xl font-display font-semibold text-ink hover:text-[color:var(--color-accent-primary)] transition-colors duration-fast py-4 border-b border-edge"
-              >
-                {item.label}
-              </Link>
+              <div key={item.href} className="border-b border-edge">
+                <Link
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className="block text-2xl font-display font-semibold text-ink hover:text-[color:var(--color-accent-primary)] transition-colors duration-fast py-4"
+                >
+                  {item.label}
+                </Link>
+                {item.children && (
+                  <div className="pl-4 pb-2 flex flex-col gap-1">
+                    {item.children.map((child) => (
+                      <Link
+                        key={child.href}
+                        href={child.href}
+                        onClick={() => setOpen(false)}
+                        className="text-base font-medium text-ink-secondary hover:text-[color:var(--color-accent-primary)] transition-colors duration-fast py-2"
+                      >
+                        {child.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
             <Link
               href="https://patients.excelentmedical.com"

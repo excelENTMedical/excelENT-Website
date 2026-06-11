@@ -40,7 +40,7 @@ export default function WhyExcelentTeaser() {
       aria-labelledby="why-heading"
       className="bg-surface border-b border-edge"
     >
-      <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-32">
+      <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16 lg:py-20">
         <div className="grid lg:grid-cols-12 gap-10 lg:gap-16">
           <div className="lg:col-span-5 flex flex-col gap-6">
             <EyebrowTag tone="default">Why excelENT</EyebrowTag>
@@ -65,7 +65,7 @@ export default function WhyExcelentTeaser() {
                   30,000+
                 </div>
                 <div className="text-xs md:text-sm text-ink-secondary mt-2">
-                  observed cases
+                  Observed Cases
                 </div>
               </div>
               <div>
@@ -73,7 +73,7 @@ export default function WhyExcelentTeaser() {
                   60+
                 </div>
                 <div className="text-xs md:text-sm text-ink-secondary mt-2">
-                  combined years in ENT
+                  Combined Years in ENT
                 </div>
               </div>
             </div>
@@ -82,7 +82,7 @@ export default function WhyExcelentTeaser() {
               href="/b2b/why-excelent"
               className="btn-b2b-secondary self-start mt-4"
             >
-              Meet the team
+              Meet the Team
             </Link>
           </div>
 
@@ -90,12 +90,12 @@ export default function WhyExcelentTeaser() {
           <div className="lg:col-span-6 lg:col-start-7">
             <ul
               role="list"
-              className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-edge border border-edge"
+              className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6"
             >
               {team.map((member) => (
                 <li
                   key={member.name}
-                  className="bg-surface p-6 md:p-8 flex flex-col gap-3 min-h-44"
+                  className="bg-surface p-6 md:p-8 border-l-4 border-[color:var(--color-accent-primary)] flex flex-col gap-3 min-h-44"
                 >
                   {member.headshot ? (
                     <div className="relative w-14 h-14 rounded-full overflow-hidden bg-surface-alt">

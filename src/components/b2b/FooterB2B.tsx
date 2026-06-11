@@ -45,7 +45,7 @@ export default function FooterB2B() {
   return (
     <footer
       role="contentinfo"
-      className="bg-surface-alt border-t border-edge mt-auto"
+      className="bg-surface border-t border-edge mt-auto"
     >
       <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         {/* Top row — logo + tagline + CTA */}
@@ -54,13 +54,14 @@ export default function FooterB2B() {
             <Image
               src="/images/logo.png"
               alt="excelENT"
-              width={200}
-              height={62}
-              className="h-10 md:h-12 w-auto"
+              width={1920}
+              height={641}
+              sizes="(min-width: 768px) 360px, 280px"
+              className="h-20 md:h-24 w-auto"
             />
-            <p className="text-sm md:text-base text-ink-secondary leading-relaxed max-w-md">
-              Practice Solutions Platform for independent ENT practices. Built
-              by practicing otolaryngologists.
+            <p className="text-sm md:text-base text-ink-secondary leading-relaxed max-w-lg text-pretty">
+              <span className="whitespace-nowrap">Practice Solutions Platform.</span>{' '}
+              Built by practicing otolaryngologists.
             </p>
           </div>
 

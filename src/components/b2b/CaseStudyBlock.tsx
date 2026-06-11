@@ -1,17 +1,9 @@
-import Link from 'next/link'
-import ArrowRight from './ArrowRight'
 import EyebrowTag from './EyebrowTag'
 import Stat from './Stat'
 
-/**
- * CaseStudyBlock — Triangle Sinus Center
- *
- * Quarterly figures sourced from `excelENT Practice Solutions
- * Presentation_March 2026.pdf`, slide 9 (PS | Connect customer case
- * study). Source values are deck-illustrative and need final
- * marketing-clearance + cleared-quote sign-off from Triangle Sinus
- * before public deploy. See DESIGN_REVIEW.md must-fix #1.
- */
+// Customer publicly blinded as a "local ENT partner" — avoids creating a
+// target list for competitors and sidesteps the marketing-clearance dep.
+// Quarterly figures remain accurate.
 
 type Quarter = { q: string; value: number; label: string }
 
@@ -31,7 +23,7 @@ export default function CaseStudyBlock() {
       aria-labelledby="case-study-heading"
       className="bg-surface-alt border-b border-edge"
     >
-      <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-32">
+      <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16 lg:py-20">
         <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-start">
           {/* Left — narrative */}
           <div className="lg:col-span-7 flex flex-col gap-6">
@@ -41,7 +33,7 @@ export default function CaseStudyBlock() {
               id="case-study-heading"
               className="font-display font-bold tracking-tight leading-[1.1] text-3xl md:text-4xl lg:text-5xl text-ink text-balance"
             >
-              Triangle Sinus runs the full Practice Solutions stack.
+              A local ENT partner runs the full Practice Solutions stack.
             </h2>
 
             <p className="body-lead text-pretty">
@@ -49,8 +41,8 @@ export default function CaseStudyBlock() {
               <strong className="font-semibold text-ink">PS | Connect</strong>{' '}
               for patient prospecting and{' '}
               <strong className="font-semibold text-ink">PS | Lexi</strong>{' '}
-              for AI-driven scheduling, Triangle Sinus tracks four full
-              quarters of measurable patient flow — with the underlying
+              for AI-driven scheduling, this local ENT partner tracks four
+              full quarters of measurable patient flow — with the underlying
               numbers visible to the practice in real time.
             </p>
 
@@ -64,27 +56,18 @@ export default function CaseStudyBlock() {
               <footer className="mt-4 text-sm text-ink-secondary not-italic">
                 — Practice administrator,{' '}
                 <span className="font-semibold text-ink">
-                  Triangle Sinus Center
-                </span>{' '}
-                · Raleigh, NC
+                  local ENT partner
+                </span>
               </footer>
             </blockquote>
-
-            <Link
-              href="/b2b/customers/triangle-sinus"
-              className="group inline-flex items-center gap-2 text-sm font-semibold text-[color:var(--color-accent-primary)] transition-colors duration-fast mt-2"
-            >
-              Read the full case study
-              <ArrowRight className="transition-transform duration-fast group-hover:translate-x-1" />
-            </Link>
           </div>
 
           {/* Right — quarterly metric callout */}
           <aside
-            aria-label="Quarterly patient payments — Triangle Sinus, 2025"
+            aria-label="Quarterly patient payments — local ENT partner, 2025"
             className="lg:col-span-5 lg:sticky lg:top-24"
           >
-            <div className="bg-surface border border-edge p-8 md:p-10">
+            <div className="bg-surface border-l-4 border-[color:var(--color-accent-primary)] p-8 md:p-10">
               <EyebrowTag tone="default" className="mb-6">
                 2025 patient payments
               </EyebrowTag>
@@ -92,7 +75,7 @@ export default function CaseStudyBlock() {
               <Stat
                 value={TOTAL_LABEL}
                 label="Tracked across four quarters"
-                caption="Patient-payment revenue at Triangle Sinus through PS | Connect-driven appointments. Quarterly distribution below."
+                caption="Patient-payment revenue through PS | Connect-driven appointments. Quarterly distribution below."
                 size="xl"
               />
 
@@ -125,8 +108,7 @@ export default function CaseStudyBlock() {
 
               <p className="text-xs text-ink-tertiary mt-6 pt-4 border-t border-edge">
                 Source: ExcelENT Practice Solutions Overview, March 2026.
-                Quarterly figures pending final marketing-clearance from
-                Triangle Sinus.
+                Customer name withheld at customer&rsquo;s request.
               </p>
             </div>
           </aside>

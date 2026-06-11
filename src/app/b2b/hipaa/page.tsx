@@ -35,8 +35,8 @@ export default function HIPAAPage() {
             </h2>
             <p>
               The excelENT Practice Solutions platform — including PS | Lexi
-              (AI virtual front desk), PS | Connect (patient routing), and
-              PS | RCM (revenue cycle management) — operates on
+              (Virtual Office Assistant), PS | Connect (Patient Routing), and
+              PS | RCM (Revenue Cycle Management) — operates on
               HIPAA-enabled infrastructure. Patient information is handled
               according to healthcare privacy standards.
             </p>

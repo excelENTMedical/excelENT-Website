@@ -26,16 +26,16 @@ const products: Array<{
     name: 'BB8 Balloon',
     href: '/b2b/products/bb8',
     status: 'available',
-    tag: '5 functions in 1 device',
+    tag: '6 functions in 1 device',
     description:
-      'A single device performing the function of five — light-guided navigation, no-nav-required flexibility, tactile feedback, malleable tip, suction, and irrigation.',
+      'A single device performing the function of six — light-guided navigation, no-nav-required flexibility, tactile feedback, malleable tip, suction, and irrigation.',
     highlights: [
       '750+ patients operated',
       '3,000+ sinuses addressed',
       '100% surgical success',
       '0% intra/post-op complications',
     ],
-    image: '/images/products/bb8.png',
+    image: '/images/products/bb8.webp',
     imageAlt: 'BB8 Balloon device',
   },
   {
@@ -46,7 +46,7 @@ const products: Array<{
     description:
       'Core ENT shaver blades engineered for clean tissue removal with consistent performance across procedure types.',
     highlights: ['Approved device', 'Compatible with major ENT systems'],
-    image: '/images/products/shaver-blades.png',
+    image: '/images/products/shaver-blades.webp',
     imageAlt: 'Microdebrider shaver blade tips',
   },
   {
@@ -57,7 +57,7 @@ const products: Array<{
     description:
       'A nasal irrigation system designed for pre- and post-procedure patient care — easy for patients to use at home, supports better surgical outcomes.',
     highlights: ['Approved device', 'Built for patient compliance'],
-    image: '/images/products/allergyx.png',
+    image: '/images/products/allergyx.webp',
     imageAlt: 'AllergyX nasal rinse kit',
   },
   {
@@ -78,15 +78,15 @@ export default function ProductsOverviewPage() {
     <>
       <PageHero
         eyebrow="Medical Device Portfolio"
-        title="Best-in-industry devices, built around what your team actually uses."
-        description="FDA-approved products for in-office ENT — minimally invasive, clinically proven, and supported by an experienced sales team that can train your staff on-site. Plus a growing R&D pipeline."
+        title="Best-in-industry devices, built around what your team uses."
+        description="FDA-approved products for in-office ENT — minimally invasive, clinically proven, and supported by an experienced sales team that can train your staff on-site."
       />
 
       <section
         aria-labelledby="products-heading"
         className="bg-surface border-b border-edge"
       >
-        <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-32">
+        <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16 lg:py-20">
           <h2 id="products-heading" className="sr-only">
             Available products
           </h2>

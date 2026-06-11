@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 import EyebrowTag from '@/components/b2b/EyebrowTag'
-import PageHero from '@/components/b2b/PageHero'
-import Stat from '@/components/b2b/Stat'
 import FAQAccordion from '@/components/b2b/FAQAccordion'
 import InlineDemoCTA from '@/components/b2b/InlineDemoCTA'
 import ArrowRight from '@/components/b2b/ArrowRight'
@@ -16,22 +15,22 @@ export const metadata: Metadata = {
 const financialFacts: Array<{ stat: string; label: string; caption: string }> = [
   {
     stat: '11.8%',
-    label: 'Industry denial rate',
+    label: 'Industry Denial Rate',
     caption: 'Some practices see 15%+. Aptarro 2026 baseline.',
   },
   {
     stat: '2.5%',
-    label: 'excelENT denial rate',
+    label: 'excelENT Denial Rate',
     caption: 'Achieved at partner practices on ENT-specific coding.',
   },
   {
     stat: '$57.23',
-    label: 'Per-claim rework cost',
+    label: 'Per-Claim Rework Cost',
     caption: 'Up from $43.84 in 2022 — increasing every year.',
   },
   {
     stat: '57%',
-    label: 'Denials successfully appealed',
+    label: 'Denials Successfully Appealed',
     caption: 'The other 43% is permanent revenue loss.',
   },
 ]
@@ -43,17 +42,17 @@ const compliance: Array<{ title: string; description: string }> = [
       'Systematic billing errors can lead to provider exclusion from federal programs. We code defensively from day one.',
   },
   {
-    title: 'State medical board actions',
+    title: 'State Medical Board Actions',
     description:
       'Fraudulent billing patterns trigger licensing investigations. ENT-specific coding reduces audit triggers.',
   },
   {
-    title: 'Malpractice exposure',
+    title: 'Malpractice Exposure',
     description:
       'Billing disputes often escalate to quality-of-care allegations. Clean billing reduces this surface area.',
   },
   {
-    title: 'Audit triggers',
+    title: 'Audit Triggers',
     description:
       'Late submissions and coding inconsistencies increase RAC and ZPIC audit probability. Our process is built around timeliness.',
   },
@@ -61,22 +60,22 @@ const compliance: Array<{ title: string; description: string }> = [
 
 const businessImpacts: Array<{ title: string; description: string }> = [
   {
-    title: 'Stronger cash flow',
+    title: 'Stronger Cash Flow',
     description:
       'Faster claim turnaround and lower denial rates put cash in the practice account weeks earlier.',
   },
   {
-    title: 'Less administrative burden',
+    title: 'Less Administrative Burden',
     description:
       'Your front office stops chasing denials. Routine coding and submission moves off your plate entirely.',
   },
   {
-    title: 'Lower financial risk',
+    title: 'Lower Financial Risk',
     description:
       'Fewer denied claims, fewer appeals, less exposure to compliance triggers. Sleep better at end of quarter.',
   },
   {
-    title: 'Real visibility',
+    title: 'Real Visibility',
     description:
       'Diagnostic dashboards show denial root causes in real time, so you can spot upstream workflow issues before they compound.',
   },
@@ -113,39 +112,77 @@ const faqs = [
 export default function PSRCMPage() {
   return (
     <>
-      <PageHero
-        eyebrow="PS | RCM"
-        title="Cut denials. Recover revenue. Stabilize cash flow."
-        description="ENT-specific revenue cycle management — built around your coding patterns, payer mix, and procedure types. We move denial rates from the 11.8% industry baseline toward 2.5%, and we share the upside."
+      {/* Hero — text left, image right (no data under) */}
+      <section
+        aria-labelledby="rcm-hero-headline"
+        className="border-b border-edge"
       >
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-          <Link href="/b2b/request-demo" className="btn-b2b-primary">
-            Request a Demo
-          </Link>
-          <Link
-            href="/b2b/solutions"
-            className="text-sm font-semibold text-ink hover:text-[color:var(--color-accent-primary)] transition-colors duration-fast inline-flex items-center gap-2"
-          >
-            <ArrowRight className="rotate-180" />
-            All Solutions
-          </Link>
-        </div>
-      </PageHero>
+        <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16 lg:py-20">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
+            <div className="lg:col-span-7 flex flex-col gap-6 md:gap-8">
+              <EyebrowTag tone="accent">PS | RCM</EyebrowTag>
+              <h1
+                id="rcm-hero-headline"
+                className="font-display font-bold tracking-tight leading-[1.05] text-ink text-balance text-4xl sm:text-5xl md:text-6xl lg:text-7xl"
+              >
+                Reduce Denials. Recover revenue. Stabilize cash flow.
+              </h1>
+              <p className="body-lead max-w-2xl text-pretty">
+                ENT-specific revenue cycle management — built around your
+                coding patterns, payer mix, and procedure types. We move denial
+                rates from the 11.8% industry baseline toward 2.5%, and we
+                share the upside.
+              </p>
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-3 pt-2">
+                <Link href="/b2b/request-demo" className="btn-b2b-primary">
+                  Request a Demo
+                </Link>
+                <Link
+                  href="/b2b/solutions"
+                  className="text-sm md:text-base font-semibold text-ink hover:text-[color:var(--color-accent-primary)] transition-colors duration-fast inline-flex items-center gap-2"
+                >
+                  <ArrowRight className="rotate-180" />
+                  All Solutions
+                </Link>
+              </div>
+            </div>
 
+            <aside aria-label="PS | RCM imagery" className="lg:col-span-5">
+              <div className="relative w-full aspect-[4/3] overflow-hidden bg-surface-alt">
+                <Image
+                  src="/images/heroes/b2b-rcm.webp"
+                  alt="A modern medical billing operations workspace with a financial dashboard"
+                  fill
+                  priority
+                  sizes="(min-width: 1024px) 40vw, 100vw"
+                  className="object-cover"
+                />
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      {/* The financial reality — navy bg, white text */}
       <section
         aria-labelledby="problem-heading"
-        className="bg-surface-inverse text-[color:var(--color-text-inverse)] border-b border-edge"
+        className="relative border-b border-edge"
+        style={{ background: '#061b42' }}
       >
-        <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-28">
+        <div
+          aria-hidden="true"
+          className="absolute top-0 left-0 right-0 h-px bg-[color:var(--color-accent-primary)]"
+        />
+        <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 lg:py-24">
           <div className="flex flex-col gap-3 max-w-3xl mb-10 md:mb-12">
             <EyebrowTag tone="inverse">The financial reality</EyebrowTag>
             <h2
               id="problem-heading"
-              className="font-display font-bold tracking-tight leading-[1.1] text-3xl md:text-4xl lg:text-5xl text-balance"
+              className="font-display font-bold tracking-tight leading-[1.1] text-3xl md:text-4xl lg:text-5xl text-white text-balance"
             >
               For a $3M practice, denials are a $354K&ndash;$450K annual problem.
             </h2>
-            <p className="body-lead text-neutral-300 max-w-2xl mt-2">
+            <p className="body-lead text-white max-w-2xl mt-2">
               Industry denial rates surged to 11.8% in 2026, and the cost of
               reworking each claim is rising every year. The math compounds —
               quietly, then quickly.
@@ -157,41 +194,47 @@ export default function PSRCMPage() {
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 md:gap-8 lg:gap-12"
           >
             {financialFacts.map((f) => (
-              <li
-                key={f.label}
-                className="flex flex-col border-l-2 border-neutral-700 pl-5"
-              >
-                <Stat
-                  value={f.stat}
-                  label={f.label}
-                  caption={f.caption}
-                  size="lg"
-                  inverse
-                />
+              <li key={f.label} className="flex flex-col gap-2 text-white">
+                <div className="stat-display text-5xl md:text-6xl text-white">
+                  {f.stat}
+                </div>
+                <div className="text-sm md:text-base font-semibold text-white leading-snug">
+                  {f.label}
+                </div>
+                <div className="text-xs md:text-sm text-white leading-snug">
+                  {f.caption}
+                </div>
               </li>
             ))}
           </ul>
         </div>
       </section>
 
+      {/* Compliance exposure — purple left border */}
       <section
         aria-labelledby="compliance-heading"
         className="bg-surface border-b border-edge"
       >
-        <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-28">
+        <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 lg:py-24">
           <div className="grid lg:grid-cols-12 gap-10 lg:gap-16">
             <div className="lg:col-span-4 flex flex-col gap-3">
-              <EyebrowTag tone="default">Compliance exposure</EyebrowTag>
+              <EyebrowTag tone="accent">Compliance exposure</EyebrowTag>
               <h2
                 id="compliance-heading"
                 className="font-display font-bold tracking-tight leading-[1.1] text-3xl md:text-4xl text-ink text-balance"
               >
-                Bad billing is a regulatory problem, not just a financial one.
+                Faulty billing is a regulatory problem, not just a financial one.
               </h2>
             </div>
-            <ul role="list" className="lg:col-span-8 grid sm:grid-cols-2 gap-x-8 gap-y-10">
+            <ul
+              role="list"
+              className="lg:col-span-8 grid sm:grid-cols-2 gap-x-8 gap-y-10"
+            >
               {compliance.map((c) => (
-                <li key={c.title} className="flex flex-col gap-3 border-l-2 border-edge pl-5">
+                <li
+                  key={c.title}
+                  className="flex flex-col gap-3 border-l-4 border-[color:var(--color-accent-primary)] pl-5"
+                >
                   <h3 className="font-display font-bold text-lg md:text-xl text-ink leading-snug">
                     {c.title}
                   </h3>
@@ -205,11 +248,12 @@ export default function PSRCMPage() {
         </div>
       </section>
 
+      {/* What changes (business impact) — universal box pattern */}
       <section
         aria-labelledby="impact-heading"
         className="bg-surface-alt border-b border-edge"
       >
-        <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-28">
+        <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 lg:py-24">
           <div className="flex flex-col gap-3 max-w-3xl mb-10 md:mb-12">
             <EyebrowTag tone="accent">What changes</EyebrowTag>
             <h2
@@ -220,9 +264,15 @@ export default function PSRCMPage() {
             </h2>
           </div>
 
-          <ul role="list" className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
+          <ul
+            role="list"
+            className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10"
+          >
             {businessImpacts.map((impact) => (
-              <li key={impact.title} className="flex flex-col gap-3 bg-surface border border-edge p-6 md:p-8">
+              <li
+                key={impact.title}
+                className="flex flex-col gap-3 bg-surface border-l-4 border-[color:var(--color-accent-primary)] p-6 md:p-8"
+              >
                 <h3 className="font-display font-bold text-lg md:text-xl text-ink leading-snug">
                   {impact.title}
                 </h3>
@@ -235,7 +285,16 @@ export default function PSRCMPage() {
         </div>
       </section>
 
-      <FAQAccordion title="Common questions about PS | RCM" items={faqs} />
+      <FAQAccordion
+        title={
+          <>
+            Common Questions
+            <br />
+            About PS | RCM
+          </>
+        }
+        items={faqs}
+      />
 
       <InlineDemoCTA />
     </>

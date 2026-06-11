@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
+import Link from 'next/link'
 import EyebrowTag from '@/components/b2b/EyebrowTag'
-import PageHero from '@/components/b2b/PageHero'
 import Stat from '@/components/b2b/Stat'
+import ArrowRight from '@/components/b2b/ArrowRight'
 import InlineDemoCTA from '@/components/b2b/InlineDemoCTA'
 
 export const metadata: Metadata = {
@@ -15,35 +16,42 @@ const team: Array<{
   name: string
   title: string
   bio: string
-  detail: string
   headshot?: string
 }> = [
   {
     name: 'Kashif Mazhar, MD',
     title: 'Chief Executive Officer',
     bio: 'A practicing otolaryngologist in Raleigh, NC. Brings the operating-room and clinical perspective that drives every product decision.',
-    detail: 'Practicing otolaryngologist · Raleigh, NC',
     headshot: '/images/team/kashif-mazhar.jpg',
+  },
+  {
+    name: 'Zack Casazza',
+    title: 'Chief Financial Officer',
+    bio: 'UNC Chapel Hill graduate with deep leadership experience scaling rapidly growing companies. Drives financial strategy, planning, and operational rigor across the excelENT platform.',
+    headshot: '/images/team/zack-casazza.webp',
   },
   {
     name: 'Kevin Monty',
     title: 'Chief Revenue Officer',
     bio: '30+ years of medical-device experience and $1B+ in value created across ENT-focused startups. Has partnered with hundreds of practices nationwide.',
-    detail: '30+ years medical-device experience',
     headshot: '/images/team/kevin-monty.jpg',
   },
   {
     name: 'Josh Pelger',
     title: 'Director of Clinical Solutions',
     bio: '13 years of ENT-specific expertise focused on patient journey, physician partnerships, and the practical implementation of new clinical workflows.',
-    detail: '13 years supporting ENT practices in the southeast',
     headshot: '/images/team/josh-pelger.jpg',
+  },
+  {
+    name: 'Samir Patel',
+    title: 'Director of Information Technology',
+    bio: '18 years driving digital campaigns, IT infrastructure, and cybersecurity at scale. Leads the technology backbone behind excelENT’s products and HIPAA-compliant operations.',
+    headshot: '/images/team/samir-patel.webp',
   },
   {
     name: 'Eric Honsberger',
     title: 'PEAP Director',
-    bio: '15 years on the East Coast ENT corridor. Leads patient engagement, acquisition, and partnership strategy across PS | Connect markets.',
-    detail: '15 years on the East Coast ENT corridor',
+    bio: '15 years assisting ENTs grow their practice presence across the Northeast. Leads patient engagement, acquisition, and partnership strategy across PS | Connect markets.',
     headshot: '/images/team/eric-honsberger.jpg',
   },
 ]
@@ -80,12 +88,57 @@ const philosophy: Array<{ title: string; description: string }> = [
 export default function WhyExcelentPage() {
   return (
     <>
-      <PageHero
-        eyebrow="Why excelENT"
-        title="Built by practicing ENTs, not consolidators."
-        description="A team with deep operating-room, front-office, and revenue-cycle experience — building the platform we wish we'd had inside our own practices."
-      />
+      {/* Hero — text left, image right */}
+      <section
+        aria-labelledby="why-hero-headline"
+        className="border-b border-edge"
+      >
+        <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16 lg:py-20">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
+            <div className="lg:col-span-7 flex flex-col gap-6 md:gap-8">
+              <EyebrowTag tone="accent">Why excelENT</EyebrowTag>
+              <h1
+                id="why-hero-headline"
+                className="font-display font-bold tracking-tight leading-[1.05] text-ink text-balance text-4xl sm:text-5xl md:text-6xl lg:text-7xl"
+              >
+                Built by practicing ENTs, not consolidators.
+              </h1>
+              <p className="body-lead max-w-2xl text-pretty">
+                A team with deep operating-room, front-office, and
+                revenue-cycle experience &mdash; building the platform we
+                wish we&rsquo;d had inside our own practices.
+              </p>
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-3 pt-2">
+                <Link href="/b2b/request-demo" className="btn-b2b-primary">
+                  Request a Demo
+                </Link>
+                <Link
+                  href="/b2b/solutions"
+                  className="text-sm md:text-base font-semibold text-ink hover:text-[color:var(--color-accent-primary)] transition-colors duration-fast inline-flex items-center gap-2"
+                >
+                  Explore solutions
+                  <ArrowRight />
+                </Link>
+              </div>
+            </div>
 
+            <aside aria-label="Why excelENT imagery" className="lg:col-span-5">
+              <div className="relative w-full aspect-[4/3] overflow-hidden bg-surface-alt">
+                <Image
+                  src="/images/site/kashif-mazhar-portrait.jpg"
+                  alt="Dr. Kashif Mazhar, practicing otolaryngologist and ExcelENT CEO"
+                  fill
+                  priority
+                  sizes="(min-width: 1024px) 40vw, 100vw"
+                  className="object-cover"
+                />
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      {/* Decades of ENT — gray section with stats + expertise list */}
       <section
         aria-labelledby="experience-heading"
         className="bg-surface-alt border-b border-edge relative"
@@ -94,59 +147,54 @@ export default function WhyExcelentPage() {
           aria-hidden="true"
           className="absolute top-0 left-0 right-0 h-px bg-[color:var(--color-accent-primary)]"
         />
-        <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20 lg:py-24">
-          <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-end mb-10 md:mb-12">
-            <div className="lg:col-span-7 flex flex-col gap-3">
-              <EyebrowTag tone="accent">Decades of real-world ENT</EyebrowTag>
-              <h2 className="font-display font-bold tracking-tight leading-[1.1] text-3xl md:text-4xl lg:text-5xl text-ink text-balance">
-                We understand ENT &mdash; we&rsquo;ve lived it.
-              </h2>
+        <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">
+          {/* Title + expertise stacked on the left, stats stacked on the right */}
+          <div className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-start">
+            <div className="lg:col-span-8 flex flex-col gap-8 md:gap-10">
+              <div className="flex flex-col gap-3">
+                <EyebrowTag tone="accent">Decades of real-world ENT</EyebrowTag>
+                <h2
+                  id="experience-heading"
+                  className="font-display font-bold tracking-tight leading-[1.1] text-3xl md:text-4xl lg:text-5xl text-ink text-balance"
+                >
+                  We understand ENT &mdash; we&rsquo;ve lived it.
+                </h2>
+              </div>
+              <h3 className="sr-only">Areas of expertise</h3>
+              <ul
+                role="list"
+                className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4"
+              >
+                {expertise.map((item) => (
+                  <li
+                    key={item}
+                    className="text-sm md:text-base text-ink-secondary leading-relaxed flex items-start gap-2"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="mt-2.5 inline-block w-1.5 h-1.5 bg-[color:var(--color-accent-primary)] flex-shrink-0"
+                    />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <div className="lg:col-span-5 flex gap-10">
-              <div>
-                <Stat
-                  value="30,000+"
-                  label="Observed cases"
-                  size="lg"
-                />
-              </div>
-              <div>
-                <Stat
-                  value="60+"
-                  label="Combined years in ENT"
-                  size="lg"
-                />
-              </div>
+            <div className="lg:col-span-4 flex flex-col gap-6 md:gap-8 lg:pt-10">
+              <Stat value="30,000+" label="Observed Cases" size="lg" />
+              <Stat value="60+" label="Combined Years in ENT" size="lg" />
             </div>
           </div>
-          <h3 className="sr-only">Areas of expertise</h3>
-          <ul
-            role="list"
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-4"
-          >
-            {expertise.map((item) => (
-              <li
-                key={item}
-                className="text-sm md:text-base text-ink-secondary leading-relaxed flex items-start gap-2"
-              >
-                <span
-                  aria-hidden="true"
-                  className="mt-2.5 inline-block w-1.5 h-1.5 bg-[color:var(--color-accent-primary)] flex-shrink-0"
-                />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
         </div>
       </section>
 
+      {/* The team — universal box pattern */}
       <section
         aria-labelledby="team-heading"
         className="bg-surface border-b border-edge"
       >
-        <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-28">
+        <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 lg:py-24">
           <div className="flex flex-col gap-3 max-w-3xl mb-12 md:mb-16">
-            <EyebrowTag tone="default">The team</EyebrowTag>
+            <EyebrowTag tone="accent">The team</EyebrowTag>
             <h2
               id="team-heading"
               className="font-display font-bold tracking-tight leading-[1.1] text-3xl md:text-4xl lg:text-5xl text-ink text-balance"
@@ -157,12 +205,12 @@ export default function WhyExcelentPage() {
 
           <ul
             role="list"
-            className="grid grid-cols-1 md:grid-cols-2 gap-px bg-edge border border-edge"
+            className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8"
           >
             {team.map((member) => (
               <li
                 key={member.name}
-                className="bg-surface p-8 md:p-10 flex flex-col gap-4 min-h-60"
+                className="bg-surface border-l-4 border-[color:var(--color-accent-primary)] p-8 md:p-10 flex flex-col gap-4 min-h-60"
               >
                 {member.headshot ? (
                   <div className="relative w-20 h-20 rounded-full overflow-hidden bg-surface-alt">
@@ -198,20 +246,18 @@ export default function WhyExcelentPage() {
                 <p className="text-base text-ink-secondary leading-relaxed flex-grow">
                   {member.bio}
                 </p>
-                <p className="text-xs text-ink-tertiary mt-auto pt-4 border-t border-edge">
-                  {member.detail}
-                </p>
               </li>
             ))}
           </ul>
         </div>
       </section>
 
+      {/* Our philosophy — universal box pattern */}
       <section
         aria-labelledby="philosophy-heading"
         className="bg-surface-alt border-b border-edge"
       >
-        <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-28">
+        <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 lg:py-24">
           <div className="flex flex-col gap-3 max-w-3xl mb-12 md:mb-16">
             <EyebrowTag tone="accent">Our philosophy</EyebrowTag>
             <h2
@@ -231,7 +277,7 @@ export default function WhyExcelentPage() {
             {philosophy.map((p) => (
               <li
                 key={p.title}
-                className="bg-surface border border-edge p-8 flex flex-col gap-3"
+                className="bg-surface border-l-4 border-[color:var(--color-accent-primary)] p-8 flex flex-col gap-3"
               >
                 <h3 className="font-display font-bold text-xl text-ink leading-snug">
                   {p.title}

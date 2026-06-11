@@ -180,10 +180,29 @@
   --color-accent-secondary:      #2a6ba8;
   --color-accent-secondary-fg:   #ffffff;
 
+  /* CTA color — always brand purple, regardless of section accent.
+     Buttons use this so they stay consistent across product/solutions pages. */
+  --color-cta-primary:        #89007a;
+  --color-cta-primary-hover:  #6d0062;
+  --color-cta-primary-active: #5a0051;
+  --color-cta-primary-fg:     #ffffff;
+
   --color-status-success: var(--status-success);
   --color-status-warning: var(--status-warning);
   --color-status-error:   var(--status-error);
   --color-status-info:    var(--status-info);
+}
+
+/* Section override: product pages use navy as the primary accent.
+   Solutions pages (and the rest of B2B) keep the default purple.
+   CTA variables are intentionally NOT overridden here — buttons stay purple. */
+[data-section="product"] {
+  --color-accent-primary:        #061b42;
+  --color-accent-primary-hover:  #0a2a5c;
+  --color-accent-primary-active: #0d3470;
+  --color-accent-primary-fg:     #ffffff;
+  --color-accent-primary-subtle: #e8eef9;
+  --color-border-focus:          #061b42;
 }
 
 /* B2B theme — dark (generated; not auto-activated in Phase 1) */
@@ -220,15 +239,17 @@
   --shadow-focus: 0 0 0 3px rgb(224 109 212 / 0.45);
 }
 
-/* Patient theme — light (preserves the current site's warmer palette) */
+/* Patient theme — light (editorial-medical + warm magazine; see /.design/patient-rebuild/DESIGN_TOKENS.md) */
 [data-theme="patient"] {
+  /* Surfaces — neutral grays (aligned with B2B; previously warm ivory/paper) */
   --color-bg-primary:        #ffffff;
-  --color-bg-secondary:      #fafafa;
-  --color-bg-tertiary:       #f4f4f5;
-  --color-bg-inverse:        #c8dfff;
+  --color-bg-secondary:      var(--neutral-50);   /* light gray */
+  --color-bg-tertiary:       var(--neutral-100);  /* slightly darker gray */
+  --color-bg-inverse:        #ffffff;             /* footer is white now */
   --color-bg-elevated:       #ffffff;
-  --color-bg-overlay:        rgba(24, 24, 27, 0.5);
+  --color-bg-overlay:        rgba(24, 24, 27, 0.55);
 
+  /* Text */
   --color-text-primary:      var(--neutral-900);
   --color-text-secondary:    var(--neutral-600);
   --color-text-tertiary:     var(--neutral-500);
@@ -236,11 +257,13 @@
   --color-text-link:         #89007a;
   --color-text-link-hover:   #6d0062;
 
+  /* Borders */
   --color-border-primary:    var(--neutral-200);
   --color-border-secondary:  var(--neutral-100);
   --color-border-strong:     var(--neutral-300);
   --color-border-focus:      #89007a;
 
+  /* Accents */
   --color-accent-primary:        #89007a;
   --color-accent-primary-hover:  #6d0062;
   --color-accent-primary-active: #5a0051;
@@ -253,16 +276,68 @@
   --color-accent-tertiary:       #C25BAB;
   --color-accent-tertiary-fg:    #ffffff;
 
-  --radius-button: var(--radius-full);
+  /* Type families — Fraunces (display) + Inter (body) override B2B's Cabin/Montserrat
+     when patient layout exposes --font-cabin / --font-cabin via next/font/google. */
+  --font-family-display:     var(--font-cabin), system-ui, sans-serif;
+  --font-family-body:        var(--font-cabin), system-ui, sans-serif;
 
+  /* Patient-specific letter spacing (slightly looser to let Fraunces breathe) */
+  --letter-spacing-tight:    -0.015em;
+  --letter-spacing-snug:     -0.005em;
+
+  /* New patient size — reserved for paid landing hero on lg+ screens */
+  --font-size-7xl:           7.5rem;           /* 120px */
+
+  /* Radii — pill buttons + softer cards + editorial photo masks */
+  --radius-button:           var(--radius-full);
+  --radius-input:            var(--radius-md);
+  --radius-card:             var(--radius-lg);
+  --radius-card-editorial:   var(--radius-xl);
+  --radius-modal:            var(--radius-xl);
+  --radius-image:            var(--radius-md);
+  --radius-image-hero:       var(--radius-2xl);
+  --radius-pill-tag:         var(--radius-full);
+
+  /* Photography — overlays + aspect ratios */
+  --photo-overlay-dark:      linear-gradient(to bottom, rgba(24,24,27,0.0) 0%, rgba(24,24,27,0.55) 100%);
+  --photo-overlay-light:     linear-gradient(to bottom, rgba(24,24,27,0.0) 0%, rgba(24,24,27,0.35) 100%);
+  --photo-overlay-purple:    linear-gradient(135deg, rgba(137,0,122,0.4) 0%, rgba(24,24,27,0.55) 100%);
+  --photo-aspect-portrait:   4 / 5;
+  --photo-aspect-square:     1 / 1;
+  --photo-aspect-landscape:  3 / 2;
+  --photo-aspect-wide:       16 / 9;
+  --photo-aspect-cinema:     21 / 9;
+
+  /* Schedule CTA size scale — five-step system */
+  --cta-padding-xs:          0.5rem 1rem;
+  --cta-padding-sm:          0.625rem 1.25rem;
+  --cta-padding-md:          0.875rem 1.75rem;
+  --cta-padding-lg:          1.125rem 2.25rem;
+  --cta-padding-xl:          1.5rem 3rem;
+  --cta-font-xs:             var(--font-size-sm);
+  --cta-font-sm:             var(--font-size-sm);
+  --cta-font-md:             var(--font-size-base);
+  --cta-font-lg:             var(--font-size-md);
+  --cta-font-xl:             var(--font-size-lg);
+
+  /* Patient-specific shadows */
+  --shadow-editorial-card:   0 4px 24px -8px rgb(24 24 27 / 0.08), 0 2px 6px -2px rgb(24 24 27 / 0.04);
+  --shadow-modal:            0 20px 60px -12px rgb(24 24 27 / 0.25);
+
+  /* Editorial motion */
+  --duration-photo-reveal:   600ms;
+  --easing-editorial:        cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+  /* Section padding — denser than B2B Swiss */
   --section-padding-y-mobile:  var(--space-12);
   --section-padding-y-tablet:  var(--space-16);
   --section-padding-y-desktop: var(--space-20);
 
-  --color-status-success: var(--status-success);
-  --color-status-warning: var(--status-warning);
-  --color-status-error:   var(--status-error);
-  --color-status-info:    var(--status-info);
+  /* Status — inherit base */
+  --color-status-success:    var(--status-success);
+  --color-status-warning:    var(--status-warning);
+  --color-status-error:      var(--status-error);
+  --color-status-info:       var(--status-info);
 }
 
 /* Reduced motion */

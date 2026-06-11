@@ -99,13 +99,25 @@ module.exports = {
       },
       fontFamily: {
         sans: ['var(--font-cabin)', 'system-ui', 'sans-serif'],
-        heading: ['var(--font-montserrat)', 'system-ui', 'sans-serif'],
-        display: ['var(--font-montserrat)', 'system-ui', 'sans-serif'],
+        heading: ['var(--font-cabin)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-cabin)', 'system-ui', 'sans-serif'],
+        cabin: ['var(--font-cabin)', 'system-ui', 'sans-serif'],
+        // Aliases — Fraunces/Inter were swapped out for Cabin in the patient redesign;
+        // these aliases let any leftover class compile to Cabin instead of breaking.
+        fraunces: ['var(--font-cabin)', 'system-ui', 'sans-serif'],
+        inter: ['var(--font-cabin)', 'system-ui', 'sans-serif'],
       },
       fontSize: {
         // Add Swiss display sizes (extends Tailwind defaults)
         '5xl-display': ['4.5rem', { lineHeight: '1.1', letterSpacing: '-0.02em' }],
         '6xl-display': ['6rem', { lineHeight: '1.05', letterSpacing: '-0.02em' }],
+        '7xl-display': ['7.5rem', { lineHeight: '1.0', letterSpacing: '-0.015em' }],
+      },
+      aspectRatio: {
+        portrait: '4 / 5',
+        landscape: '3 / 2',
+        wide: '16 / 9',
+        cinema: '21 / 9',
       },
       borderRadius: {
         button: 'var(--radius-button)',

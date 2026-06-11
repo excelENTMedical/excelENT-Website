@@ -5,10 +5,9 @@ export default function InlineDemoCTA() {
   return (
     <section
       aria-labelledby="cta-heading"
-      className="border-b border-edge"
-      style={{ background: 'var(--color-accent-primary-subtle)' }}
+      className="bg-surface-alt border-b border-edge"
     >
-      <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 lg:py-32">
+      <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16 lg:py-20">
         <div className="max-w-4xl mx-auto text-center flex flex-col items-center gap-6 md:gap-8">
           <EyebrowTag tone="accent">Get Started</EyebrowTag>
 
@@ -33,9 +32,6 @@ export default function InlineDemoCTA() {
             >
               Request a Demo
             </Link>
-            <p className="text-sm text-ink-secondary">
-              We respond within one business day.
-            </p>
           </div>
         </div>
       </div>

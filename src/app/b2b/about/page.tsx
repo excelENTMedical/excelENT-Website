@@ -91,7 +91,7 @@ export default function AboutPage() {
 
               <div className="flex flex-wrap gap-x-6 gap-y-3 mt-2">
                 <Link href="/b2b/why-excelent" className="btn-b2b-secondary">
-                  Meet the team
+                  Meet the Team
                 </Link>
                 <Link href="/b2b/request-demo" className="btn-b2b-primary">
                   Request a Demo

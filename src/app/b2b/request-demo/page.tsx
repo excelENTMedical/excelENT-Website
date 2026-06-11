@@ -8,22 +8,19 @@ export const metadata: Metadata = {
     'Schedule a working session with our team to see what excelENT Practice Solutions can do for your specific practice.',
 }
 
-const nextSteps: Array<{ n: string; title: string; description: string }> = [
+const nextSteps: Array<{ title: string; description: string }> = [
   {
-    n: '01',
-    title: 'We review your request',
+    title: 'We Review Your Request',
     description:
       'A member of our team reads your context, looks at your market, and prepares notes specific to your practice — usually within a few hours.',
   },
   {
-    n: '02',
-    title: 'We reach out within one business day',
+    title: 'We Reach Out Within One Business Day',
     description:
       "You'll get an email (and optionally a call) to schedule a working session at a time that fits your calendar.",
   },
   {
-    n: '03',
-    title: 'We run a working session, not a sales pitch',
+    title: 'We Run a Working Session, Not a Sales Pitch',
     description:
       "On the call, we walk through what's possible for your specific practice — your patient mix, EMR, local market, and the bottleneck you most want fixed.",
   },
@@ -36,12 +33,12 @@ const trustPoints: Array<{ heading: string; description: string }> = [
       'BAAs with our technology partners. Encryption in transit and at rest. Strict access controls.',
   },
   {
-    heading: 'Built by a practicing otolaryngologist',
+    heading: 'Built by a Practicing Otolaryngologist',
     description:
       'Our CEO Kashif Mazhar, MD still sees patients in Raleigh, NC. The platform is built around real ENT workflow, not vendor abstractions.',
   },
   {
-    heading: 'Independent-practice friendly',
+    heading: 'Independent-Practice Friendly',
     description:
       'We work with consolidators only by exception. Our default partner is the privately held, physician-led practice that wants to stay that way.',
   },
@@ -75,7 +72,7 @@ export default function RequestDemoPage() {
                 {trustPoints.map((point) => (
                   <li
                     key={point.heading}
-                    className="border-l-2 border-[color:var(--color-accent-primary)] pl-5"
+                    className="border-l-4 border-[color:var(--color-accent-primary)] pl-5"
                   >
                     <h2 className="font-display font-semibold text-base md:text-lg text-ink leading-snug">
                       {point.heading}
@@ -99,9 +96,9 @@ export default function RequestDemoPage() {
         aria-labelledby="next-heading"
         className="bg-surface-alt border-b border-edge"
       >
-        <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20 lg:py-24">
+        <div className="max-w-page mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">
           <div className="flex flex-col gap-3 max-w-3xl mb-10 md:mb-12">
-            <EyebrowTag tone="default">What happens next</EyebrowTag>
+            <EyebrowTag tone="accent">What happens next</EyebrowTag>
             <h2
               id="next-heading"
               className="font-display font-bold tracking-tight leading-[1.1] text-3xl md:text-4xl text-ink text-balance"
@@ -111,13 +108,13 @@ export default function RequestDemoPage() {
           </div>
 
           <ol role="list" className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            {nextSteps.map((step) => (
+            {nextSteps.map((step, i) => (
               <li
-                key={step.n}
-                className="bg-surface border border-edge p-8 flex flex-col gap-4"
+                key={step.title}
+                className="bg-surface border-l-4 border-[color:var(--color-accent-primary)] p-8 flex flex-col gap-4"
               >
-                <span className="font-display font-bold text-2xl text-[color:var(--color-accent-primary)] leading-none">
-                  {step.n}
+                <span className="font-display font-bold text-3xl md:text-4xl text-[color:var(--color-accent-primary)] leading-none">
+                  #{i + 1}
                 </span>
                 <h3 className="font-display font-bold text-xl text-ink leading-snug">
                   {step.title}
