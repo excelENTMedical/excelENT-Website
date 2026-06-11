@@ -25,3 +25,8 @@ test('ignores trailing prose that contains a bracket', () => {
   const out = parseDrafts('[{"copy":"hi"}]\nSee [note] above.')
   assert.deepEqual(out, [{ copy: 'hi', cta: undefined }])
 })
+
+test('handles brackets and escaped quotes inside the copy string', () => {
+  const out = parseDrafts('[{"copy":"limited offer ] act now \\"today\\"","cta":"Book"}]')
+  assert.deepEqual(out, [{ copy: 'limited offer ] act now "today"', cta: 'Book' }])
+})

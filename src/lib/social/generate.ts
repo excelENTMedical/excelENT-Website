@@ -16,9 +16,19 @@ export function parseDrafts(text: string): ParsedDraft[] {
   if (start === -1) throw new Error('No JSON array in model output')
   let depth = 0
   let end = -1
+  let inString = false
+  let escaped = false
   for (let i = start; i < text.length; i++) {
-    if (text[i] === '[') depth++
-    else if (text[i] === ']') {
+    const ch = text[i]
+    if (inString) {
+      if (escaped) escaped = false
+      else if (ch === '\\') escaped = true
+      else if (ch === '"') inString = false
+      continue
+    }
+    if (ch === '"') inString = true
+    else if (ch === '[') depth++
+    else if (ch === ']') {
       depth--
       if (depth === 0) {
         end = i
@@ -97,7 +107,7 @@ export async function generateDrafts(brandId: string, opts: GenerateOptions): Pr
     const doc = await payload.create({
       collection: 'social-posts',
       data: {
-        title: `[${brandConfig.name} · ${opts.platform}] ${d.copy.slice(0, 50)}`,
+        title: `[${brandConfig.name} · ${opts.platform}] ${[...d.copy].slice(0, 50).join('')}`,
         brand: Number(brandId),
         platform: opts.platform,
         language: opts.language,
