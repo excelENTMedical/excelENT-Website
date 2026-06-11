@@ -84,5 +84,14 @@ export const BrandProfiles: CollectionConfig = {
       admin: { description: 'A few example posts that anchor the brand style.' },
       fields: [{ name: 'text', type: 'textarea', required: true }],
     },
+    {
+      name: 'generate',
+      type: 'ui',
+      admin: {
+        components: {
+          Field: '/components/admin/GenerateDraftsButton',
+        },
+      },
+    },
   ],
 }
