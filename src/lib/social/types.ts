@@ -46,3 +46,14 @@ export interface GuardrailResult {
   bannedHits: string[]
   missingDisclaimers: string[]
 }
+
+export type GraphicStyle = 'none' | 'hook' | 'stat' | 'dataviz'
+
+export interface GraphicFields {
+  headline?: string | null
+  subtext?: string | null
+  statFrom?: string | null
+  statTo?: string | null
+  statLabel?: string | null
+  caption?: string | null
+}
