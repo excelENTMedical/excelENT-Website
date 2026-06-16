@@ -17,6 +17,11 @@ export const SocialPosts: CollectionConfig = {
   },
   fields: [
     { name: 'title', type: 'text', admin: { description: 'Short label; auto-filled by the generator, editable.' } },
+    {
+      name: 'preview',
+      type: 'ui',
+      admin: { components: { Field: '/components/admin/PostPreview' } },
+    },
     { name: 'brand', type: 'relationship', relationTo: 'brand-profiles', required: true },
     {
       name: 'platform',
@@ -43,6 +48,31 @@ export const SocialPosts: CollectionConfig = {
     { name: 'copy', type: 'textarea', required: true, admin: { description: 'The post text. Edit freely before approving.' } },
     { name: 'cta', type: 'text' },
     { name: 'asset', type: 'relationship', relationTo: 'social-assets' },
+    {
+      name: 'graphicStyle',
+      type: 'select',
+      defaultValue: 'hook',
+      admin: { position: 'sidebar', description: 'Which generated graphic to render. The generator suggests one.' },
+      options: [
+        { label: 'None', value: 'none' },
+        { label: 'Hook card', value: 'hook' },
+        { label: 'Stat hero', value: 'stat' },
+        { label: 'Data-viz', value: 'dataviz' },
+      ],
+    },
+    {
+      name: 'graphic',
+      type: 'group',
+      admin: { description: 'Text rendered onto the graphic. Pre-filled by the generator; edit freely.' },
+      fields: [
+        { name: 'headline', type: 'text', admin: { description: 'Hook/main line (hook card).' } },
+        { name: 'subtext', type: 'text', admin: { description: 'Supporting line (stat hero).' } },
+        { name: 'statFrom', type: 'text', admin: { description: 'e.g. "11.8%" — stat/data-viz.' } },
+        { name: 'statTo', type: 'text', admin: { description: 'e.g. "2.5%" — stat/data-viz.' } },
+        { name: 'statLabel', type: 'text', admin: { description: 'e.g. "ENT Denial Rate".' } },
+        { name: 'caption', type: 'text', admin: { description: 'Small footer line (data-viz).' } },
+      ],
+    },
     {
       name: 'status',
       type: 'select',
