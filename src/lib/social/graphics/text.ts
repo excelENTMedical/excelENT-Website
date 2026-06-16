@@ -13,7 +13,7 @@ export function parsePercent(s: string | null | undefined): number | null {
 /** Split a hook into a lead clause and an emphasised final clause. */
 export function splitHook(headline: string): { lead: string; accent: string } {
   const t = (headline || '').trim()
-  const m = t.match(/^(.*[.!?])\s+(\S.*)$/s)
+  const m = t.match(/^([\s\S]*[.!?])\s+(\S[\s\S]*)$/)
   if (m) return { lead: m[1].trim(), accent: m[2].trim() }
   return { lead: t, accent: '' }
 }
