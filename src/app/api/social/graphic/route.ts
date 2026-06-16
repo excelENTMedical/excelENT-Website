@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { renderGraphic, GRAPHIC_SIZE } from '@/lib/social/graphics/render'
+import { renderGraphic } from '@/lib/social/graphics/render'
 import { buildGraphicFromPost, type PostForGraphic } from '@/lib/social/graphics/fromPost'
 
 export const runtime = 'nodejs'
@@ -16,13 +16,20 @@ export async function GET(req: Request) {
   const id = new URL(req.url).searchParams.get('postId')
   if (!id) return NextResponse.json({ error: 'missing postId' }, { status: 400 })
 
-  const post = (await payload.findByID({ collection: 'social-posts', id, depth: 1 })) as unknown as PostForGraphic
+  const post = (await payload.findByID({
+    collection: 'social-posts', id, depth: 1, disableErrors: true,
+  })) as unknown as PostForGraphic | null
   if (!post) return NextResponse.json({ error: 'not found' }, { status: 404 })
 
-  const png = await renderGraphic(buildGraphicFromPost(post))
-  return new NextResponse(png as unknown as BodyInit, {
-    headers: { 'content-type': 'image/png', 'cache-control': 'no-store' },
-  })
+  try {
+    const png = await renderGraphic(buildGraphicFromPost(post))
+    return new NextResponse(png as unknown as BodyInit, {
+      headers: { 'content-type': 'image/png', 'cache-control': 'no-store' },
+    })
+  } catch (err) {
+    payload.logger.error({ err }, 'social graphic render failed')
+    return NextResponse.json({ error: 'render failed' }, { status: 500 })
+  }
 }
 
 /** POST /api/social/graphic { postId } → render, store as a Social Asset, link it. */
@@ -35,16 +42,23 @@ export async function POST(req: Request) {
   try { body = await req.json() } catch { return NextResponse.json({ error: 'invalid body' }, { status: 400 }) }
   if (!body.postId) return NextResponse.json({ error: 'missing postId' }, { status: 400 })
 
-  const post = (await payload.findByID({ collection: 'social-posts', id: body.postId, depth: 1 })) as any
-  const png = await renderGraphic(buildGraphicFromPost(post as PostForGraphic))
-  const brandId = typeof post.brand === 'object' ? post.brand.id : post.brand
+  const post = (await payload.findByID({
+    collection: 'social-posts', id: body.postId, depth: 1, disableErrors: true,
+  })) as any
+  if (!post) return NextResponse.json({ error: 'not found' }, { status: 404 })
 
-  const asset = await payload.create({
-    collection: 'social-assets',
-    data: { alt: `${post.title || 'post'} graphic`, brand: brandId, source: 'ai-generated' },
-    file: { data: png, mimetype: 'image/png', name: `post-${body.postId}-${post.graphicStyle || 'none'}.png`, size: png.length },
-  })
-
-  await payload.update({ collection: 'social-posts', id: body.postId, data: { asset: asset.id } })
-  return NextResponse.json({ ok: true, assetId: asset.id })
+  try {
+    const png = await renderGraphic(buildGraphicFromPost(post as PostForGraphic))
+    const brandId = typeof post.brand === 'object' ? post.brand.id : post.brand
+    const asset = await payload.create({
+      collection: 'social-assets',
+      data: { alt: `${post.title || 'post'} graphic`, brand: brandId, source: 'ai-generated' },
+      file: { data: png, mimetype: 'image/png', name: `post-${body.postId}-${post.graphicStyle || 'none'}.png`, size: png.length },
+    })
+    await payload.update({ collection: 'social-posts', id: body.postId, data: { asset: asset.id } })
+    return NextResponse.json({ ok: true, assetId: asset.id })
+  } catch (err) {
+    payload.logger.error({ err }, 'social graphic save failed')
+    return NextResponse.json({ error: 'save failed' }, { status: 500 })
+  }
 }

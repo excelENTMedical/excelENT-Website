@@ -1,5 +1,5 @@
 'use client'
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import { useDocumentInfo, useAllFormFields } from '@payloadcms/ui'
 
 const CHROME: Record<string, { sub: string }> = {
@@ -13,6 +13,7 @@ export default function PostPreview() {
   const [fields] = useAllFormFields()
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
+  const [imgError, setImgError] = useState(false)
 
   const get = (k: string) => (fields[k]?.value as string) || ''
   const platform = get('platform') || 'linkedin'
@@ -25,6 +26,8 @@ export default function PostPreview() {
       'graphic.statFrom', 'graphic.statTo', 'graphic.statLabel', 'graphic.caption']
     return encodeURIComponent(keys.map((k) => (fields[k]?.value as string) || '').join('|')).slice(0, 64)
   }, [fields])
+
+  React.useEffect(() => { setImgError(false) }, [ver])
 
   if (!id) return <p style={{ fontSize: 12, color: '#666' }}>Save the draft to see its preview.</p>
 
@@ -54,13 +57,19 @@ export default function PostPreview() {
           </div>
         </div>
         <div style={{ padding: '4px 16px 12px', fontSize: 14, lineHeight: 1.5, color: '#18181b', whiteSpace: 'pre-line' }}>{copy}</div>
-        {style !== 'none' && (
+        {style !== 'none' && (imgError ? (
+          <div style={{ padding: '24px 16px', fontSize: 13, color: '#b91c1c', borderTop: '1px solid #e4e4e7' }}>
+            Couldn't render the graphic preview. Save the record, then reopen.
+          </div>
+        ) : (
           <img
+            key={ver}
             alt="generated graphic"
             src={`/api/social/graphic?postId=${id}&v=${ver}`}
+            onError={() => setImgError(true)}
             style={{ width: '100%', aspectRatio: '1 / 1', display: 'block', borderTop: '1px solid #e4e4e7', borderBottom: '1px solid #e4e4e7' }}
           />
-        )}
+        ))}
         <div style={{ display: 'flex', justifyContent: 'space-around', padding: '8px 0', fontSize: 13, color: '#52525b', fontWeight: 600 }}>
           <span>👍 Like</span><span>💬 Comment</span><span>↗ Share</span>
         </div>
@@ -69,7 +78,7 @@ export default function PostPreview() {
         <button type="button" onClick={save} disabled={busy || style === 'none'}>
           {busy ? 'Saving…' : 'Save graphic to asset'}
         </button>
-        <span style={{ fontSize: 12, color: '#52525b' }}>Edit copy or graphic fields, then re-open to refresh the image.</span>
+        <span style={{ fontSize: 12, color: '#52525b' }}>Save the record first — the graphic and this preview use the saved values.</span>
       </div>
       {msg && <p style={{ marginTop: 8, fontSize: 13 }}>{msg}</p>}
     </div>
