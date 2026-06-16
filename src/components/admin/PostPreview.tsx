@@ -1,0 +1,77 @@
+'use client'
+import React, { useMemo, useState } from 'react'
+import { useDocumentInfo, useAllFormFields } from '@payloadcms/ui'
+
+const CHROME: Record<string, { sub: string }> = {
+  linkedin: { sub: 'Revenue Cycle Management · Promoted' },
+  facebook: { sub: 'Sponsored' },
+  instagram: { sub: 'Sponsored' },
+}
+
+export default function PostPreview() {
+  const { id } = useDocumentInfo()
+  const [fields] = useAllFormFields()
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState('')
+
+  const get = (k: string) => (fields[k]?.value as string) || ''
+  const platform = get('platform') || 'linkedin'
+  const copy = get('copy')
+  const style = get('graphicStyle')
+
+  // Cache-bust the preview image whenever copy/style/graphic fields change.
+  const ver = useMemo(() => {
+    const keys = ['copy', 'graphicStyle', 'platform', 'graphic.headline', 'graphic.subtext',
+      'graphic.statFrom', 'graphic.statTo', 'graphic.statLabel', 'graphic.caption']
+    return encodeURIComponent(keys.map((k) => (fields[k]?.value as string) || '').join('|')).slice(0, 64)
+  }, [fields])
+
+  if (!id) return <p style={{ fontSize: 12, color: '#666' }}>Save the draft to see its preview.</p>
+
+  const save = async () => {
+    setBusy(true); setMsg('')
+    try {
+      const res = await fetch('/api/social/graphic', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        credentials: 'include', body: JSON.stringify({ postId: id }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'failed')
+      setMsg('Graphic saved to the post asset.')
+    } catch (e) {
+      setMsg(`Error: ${e instanceof Error ? e.message : 'failed'}`)
+    } finally { setBusy(false) }
+  }
+
+  return (
+    <div style={{ margin: '12px 0 20px' }}>
+      <div style={{ maxWidth: 540, border: '1px solid #e4e4e7', borderRadius: 12, overflow: 'hidden', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,.06)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px 8px' }}>
+          <div style={{ width: 46, height: 46, borderRadius: '50%', background: '#061b42', color: '#fff', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>PS</div>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#18181b' }}>PS | RCM</div>
+            <div style={{ fontSize: 12, color: '#52525b' }}>{(CHROME[platform] || CHROME.linkedin).sub}</div>
+          </div>
+        </div>
+        <div style={{ padding: '4px 16px 12px', fontSize: 14, lineHeight: 1.5, color: '#18181b', whiteSpace: 'pre-line' }}>{copy}</div>
+        {style !== 'none' && (
+          <img
+            alt="generated graphic"
+            src={`/api/social/graphic?postId=${id}&v=${ver}`}
+            style={{ width: '100%', aspectRatio: '1 / 1', display: 'block', borderTop: '1px solid #e4e4e7', borderBottom: '1px solid #e4e4e7' }}
+          />
+        )}
+        <div style={{ display: 'flex', justifyContent: 'space-around', padding: '8px 0', fontSize: 13, color: '#52525b', fontWeight: 600 }}>
+          <span>👍 Like</span><span>💬 Comment</span><span>↗ Share</span>
+        </div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 10 }}>
+        <button type="button" onClick={save} disabled={busy || style === 'none'}>
+          {busy ? 'Saving…' : 'Save graphic to asset'}
+        </button>
+        <span style={{ fontSize: 12, color: '#52525b' }}>Edit copy or graphic fields, then re-open to refresh the image.</span>
+      </div>
+      {msg && <p style={{ marginTop: 8, fontSize: 13 }}>{msg}</p>}
+    </div>
+  )
+}
