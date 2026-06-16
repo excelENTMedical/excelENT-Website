@@ -68,7 +68,16 @@ export function buildUserPrompt(
   }
 
   lines.push(
-    '\nReturn ONLY a JSON array. Each element must be an object: {"copy": "<post text>", "cta": "<the call to action you used>"}. No prose, no markdown code fences.',
+    '\nAlso design a square brand graphic for each post. Choose a graphicStyle:' +
+      '\n- "hook": one punchy line (set graphic.headline to a 4–9 word hook ending in a period).' +
+      '\n- "stat": a single before→after number (set graphic.statFrom, graphic.statTo, graphic.statLabel, and a short graphic.subtext).' +
+      '\n- "dataviz": a two-bar comparison (set graphic.statFrom, graphic.statTo, graphic.statLabel, graphic.caption).' +
+      '\nUse ONLY numbers and facts already present in the brand voice/themes/approved posts — never invent figures.',
+  )
+  lines.push(
+    '\nReturn ONLY a JSON array. Each element: {"copy":"<post text>","cta":"<cta>","graphicStyle":"hook|stat|dataviz",' +
+      '"graphic":{"headline":"","subtext":"","statFrom":"","statTo":"","statLabel":"","caption":""}}. ' +
+      'Include only the graphic keys your chosen style needs. No prose, no markdown code fences.',
   )
   return lines.join('\n')
 }

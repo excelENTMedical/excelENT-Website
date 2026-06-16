@@ -3,12 +3,17 @@ import { buildCorpus } from './corpus'
 import { buildSystemPrompt, buildUserPrompt, PROMPT_VERSION } from './prompt'
 import { checkGuardrails, norm } from './guardrails'
 import { callClaude } from './claude'
-import type { BrandConfigForPrompt, CorpusPost, GenerateOptions } from './types'
+import type { BrandConfigForPrompt, CorpusPost, GenerateOptions, GraphicFields, GraphicStyle } from './types'
 
 interface ParsedDraft {
   copy: string
   cta?: string
+  graphicStyle: GraphicStyle
+  graphic: GraphicFields
 }
+
+const GRAPHIC_STYLES: GraphicStyle[] = ['none', 'hook', 'stat', 'dataviz']
+const GRAPHIC_KEYS: (keyof GraphicFields)[] = ['headline', 'subtext', 'statFrom', 'statTo', 'statLabel', 'caption']
 
 /** Tolerate stray prose or ```json fences around the JSON array. */
 export function parseDrafts(text: string): ParsedDraft[] {
@@ -40,9 +45,20 @@ export function parseDrafts(text: string): ParsedDraft[] {
   const arr = JSON.parse(text.slice(start, end + 1))
   if (!Array.isArray(arr)) throw new Error('Model output was not an array')
   return arr
-    .filter((d: unknown): d is { copy: string; cta?: unknown } =>
+    .filter((d: unknown): d is Record<string, unknown> =>
       Boolean(d) && typeof (d as { copy?: unknown }).copy === 'string')
-    .map((d) => ({ copy: String(d.copy).trim(), cta: d.cta ? String(d.cta).trim() : undefined }))
+    .map((d) => {
+      const rawStyle = String((d as any).graphicStyle || '')
+      const g = ((d as any).graphic || {}) as Record<string, unknown>
+      const graphic: GraphicFields = {}
+      for (const k of GRAPHIC_KEYS) if (g[k] != null && g[k] !== '') graphic[k] = String(g[k]).trim()
+      return {
+        copy: String((d as any).copy).trim(),
+        cta: (d as any).cta ? String((d as any).cta).trim() : undefined,
+        graphicStyle: (GRAPHIC_STYLES.includes(rawStyle as GraphicStyle) ? rawStyle : 'hook') as GraphicStyle,
+        graphic,
+      }
+    })
 }
 
 export async function generateDrafts(brandId: string, opts: GenerateOptions): Promise<string[]> {
@@ -114,6 +130,8 @@ export async function generateDrafts(brandId: string, opts: GenerateOptions): Pr
         theme: opts.theme,
         copy: d.copy,
         cta: d.cta,
+        graphicStyle: d.graphicStyle,
+        graphic: d.graphic,
         asset: assetId != null ? Number(assetId) : undefined,
         status: 'draft',
         generationMeta: {
