@@ -1,4 +1,4 @@
-import { ImageResponse } from 'next/dist/server/og/image-response'
+import { ImageResponse } from 'next/og'
 import type { GraphicFields, GraphicStyle } from '@/lib/social/types'
 import type { GraphicTheme } from './theme'
 import { loadFonts } from './fonts'
