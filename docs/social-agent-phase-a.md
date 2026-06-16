@@ -8,8 +8,14 @@ the Payload admin. No publishing yet — nothing leaves the CMS.
 - Set `ANTHROPIC_API_KEY` in `.env`. `SOCIAL_MODEL` defaults to `claude-sonnet-4-6`
   (set `claude-opus-4-8` for max quality).
 - After pulling these changes onto the server: `npm run build && pm2 restart excelent-site`.
-  The three new tables are created automatically on boot (the Postgres adapter runs
-  with `push: true`).
+- **Creating the DB tables:** `push: true` only runs in development. Under `next start`
+  (`NODE_ENV=production`) Payload neither pushes nor migrates, so new-collection tables
+  must be synced manually. Use `scripts/schema-preview.mts` to dump the exact DDL drizzle
+  would run (`node --import tsx scripts/schema-preview.mts` — writes `schema-push.full.sql`,
+  applies nothing), filter out any `ALTER COLUMN ... SET` statements on pre-existing tables
+  (those are unrelated config/DB drift and can fail on live data), wrap the additive
+  statements in `BEGIN;`/`COMMIT;`, and apply with
+  `psql -v ON_ERROR_STOP=1 -f`. Repeat this for every future phase that adds collections.
 
 ## Daily use
 1. **Brand Profiles** (Social group) — one record per product. Edit voice, themes,
@@ -43,4 +49,31 @@ The stock `payload` CLI fails under tsx with an undici error. Use the working fo
   `generate:importmap`, then confirm the component appears in
   `src/app/(payload)/admin/importMap.js`. Note: the admin imports `./admin/importMap`
   extensionlessly, so the canonical file must be `importMap.js` (there must be no
-  shadowing `importMap.ts`).
+  shadowing `importMap.ts`). Since `generate:importmap` is unreliable here, entries are
+  added by hand — mirror the two `GenerateDraftsButton` lines (an `import { default as … }`
+  and a `"/components/admin/<Name>#default": …` map entry).
+
+## Post preview + generated brand graphics (built 2026-06-15)
+
+Reviewers see each draft as a realistic platform card (avatar + brand + copy + image +
+reaction bar) with an auto-generated, on-brand graphic in the image slot.
+
+- **Renderer:** `next/og` (Satori, built into Next 15 — no new deps). Templates are HTML/CSS
+  rendered to a 1080×1080 PNG using the site's real tokens and bundled Cabin/Montserrat
+  TTFs. Engine lives in `src/lib/social/graphics/` (`theme.ts`, `fonts.ts`,
+  `templates/{hook,stat,dataviz}.tsx`, `render.tsx`, `fromPost.ts`, `text.ts`).
+- **Styles** (per-post dropdown `graphicStyle`, generator suggests one): `hook` (punchy line,
+  punchline auto-coloured), `stat` (before→after number on navy), `dataviz` (two-bar
+  comparison), `none` (branded panel).
+- **On-image text** comes from the editable `graphic` group on each post
+  (`headline`, `subtext`, `statFrom/To/Label`, `caption`) — pre-filled by the generator,
+  tweakable without touching the post copy.
+- **Route** `src/app/api/social/graphic/route.ts`: `GET ?postId=` renders the live preview
+  PNG (auth-gated); `POST {postId}` renders and stores it as a Social Asset linked to the
+  post (the publishable image for Phase B / Blotato).
+- **Preview component** `src/components/admin/PostPreview.tsx` — a `ui` field on SocialPosts;
+  the image `<img>` points at the GET route, so the preview *is* the real PNG.
+- **Schema:** `graphicStyle` + `graphic` group were synced to the prod `social_posts` table
+  via the preview→filter→psql flow (additive only).
+- **Verify:** `node --import tsx scripts/verify-graphic.mts` renders all three styles from a
+  real draft to `/tmp/graphic-*.png`.
