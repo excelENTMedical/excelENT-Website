@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { parseDrafts } from './generate'
+import { parseDrafts, buildBrandConfig } from './generate'
 
 test('parses a clean JSON array', () => {
   const out = parseDrafts('[{"copy":"hi","cta":"Book"}]')
@@ -47,4 +47,22 @@ test('defaults graphicStyle to hook and graphic to empty when absent', () => {
 test('coerces an unknown graphicStyle to hook', () => {
   const out = parseDrafts('[{"copy":"hi","graphicStyle":"banana"}]')
   assert.equal(out[0].graphicStyle, 'hook')
+})
+
+test('buildBrandConfig maps a brand doc to prompt config', () => {
+  const cfg = buildBrandConfig({
+    name: 'PS | RCM', voice: 'v', audience: 'a',
+    themes: [{ theme: 'T', description: 'd' }],
+    defaultCtas: [{ cta: 'Book' }, { cta: '' }],
+    bannedTerms: [{ term: 'guaranteed' }],
+    requiredDisclaimers: [{ text: 'D' }],
+    seedExamples: [{ text: 'ex' }],
+  })
+  assert.equal(cfg.name, 'PS | RCM')
+  assert.equal(cfg.voice, 'v')
+  assert.deepEqual(cfg.themes, [{ theme: 'T', description: 'd' }])
+  assert.deepEqual(cfg.defaultCtas, ['Book'])
+  assert.deepEqual(cfg.bannedTerms, ['guaranteed'])
+  assert.deepEqual(cfg.requiredDisclaimers, ['D'])
+  assert.deepEqual(cfg.seedExamples, ['ex'])
 })

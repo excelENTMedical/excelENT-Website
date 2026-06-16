@@ -12,8 +12,8 @@ interface ParsedDraft {
   graphic: GraphicFields
 }
 
-const GRAPHIC_STYLES: GraphicStyle[] = ['none', 'hook', 'stat', 'dataviz']
-const GRAPHIC_KEYS: (keyof GraphicFields)[] = ['headline', 'subtext', 'statFrom', 'statTo', 'statLabel', 'caption']
+export const GRAPHIC_STYLES: GraphicStyle[] = ['none', 'hook', 'stat', 'dataviz']
+export const GRAPHIC_KEYS: (keyof GraphicFields)[] = ['headline', 'subtext', 'statFrom', 'statTo', 'statLabel', 'caption']
 
 /** Tolerate stray prose or ```json fences around the JSON array. */
 export function parseDrafts(text: string): ParsedDraft[] {
@@ -61,6 +61,21 @@ export function parseDrafts(text: string): ParsedDraft[] {
     })
 }
 
+/** Map a brand-profiles doc to the prompt config. Shared by generate + revise. */
+export function buildBrandConfig(brand: Record<string, any>): BrandConfigForPrompt {
+  const b = brand
+  return {
+    name: b.name,
+    voice: b.voice,
+    audience: b.audience,
+    themes: (b.themes || []).map((t: any) => ({ theme: t.theme, description: t.description })),
+    defaultCtas: (b.defaultCtas || []).map((c: any) => c.cta).filter(Boolean),
+    bannedTerms: (b.bannedTerms || []).map((x: any) => x.term).filter(Boolean),
+    requiredDisclaimers: (b.requiredDisclaimers || []).map((r: any) => r.text).filter(Boolean),
+    seedExamples: (b.seedExamples || []).map((s: any) => s.text).filter(Boolean),
+  }
+}
+
 export async function generateDrafts(brandId: string, opts: GenerateOptions): Promise<string[]> {
   const payload = await getPayloadClient()
 
@@ -86,17 +101,7 @@ export async function generateDrafts(brandId: string, opts: GenerateOptions): Pr
   }))
   const corpus = buildCorpus(corpusPosts)
 
-  const b = brand as Record<string, any>
-  const brandConfig: BrandConfigForPrompt = {
-    name: b.name,
-    voice: b.voice,
-    audience: b.audience,
-    themes: (b.themes || []).map((t: any) => ({ theme: t.theme, description: t.description })),
-    defaultCtas: (b.defaultCtas || []).map((c: any) => c.cta).filter(Boolean),
-    bannedTerms: (b.bannedTerms || []).map((x: any) => x.term).filter(Boolean),
-    requiredDisclaimers: (b.requiredDisclaimers || []).map((r: any) => r.text).filter(Boolean),
-    seedExamples: (b.seedExamples || []).map((s: any) => s.text).filter(Boolean),
-  }
+  const brandConfig = buildBrandConfig(brand as Record<string, any>)
 
   const system = buildSystemPrompt(brandConfig)
   const user = buildUserPrompt(brandConfig, corpus, opts)
