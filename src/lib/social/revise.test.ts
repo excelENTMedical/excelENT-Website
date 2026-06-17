@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { buildRevisePrompt } from './revise'
+import { buildRevisePrompt, parseRevision } from './revise'
 import type { BrandConfigForPrompt } from './types'
 
 const BRAND: BrandConfigForPrompt = {
@@ -31,4 +31,27 @@ test('buildRevisePrompt(both) asks for copy and graphic', () => {
   const { user } = buildRevisePrompt(BRAND, { copy: 'c' }, 'tighten everything', 'both')
   assert.match(user, /"copy"/)
   assert.match(user, /graphicStyle/)
+})
+
+test('parseRevision(copy) returns only copy/cta', () => {
+  const out = parseRevision('{"copy":"new","cta":"Book","graphicStyle":"stat"}', 'copy')
+  assert.deepEqual(out, { copy: 'new', cta: 'Book' })
+})
+
+test('parseRevision(graphic) returns only graphic fields and coerces unknown style', () => {
+  const out = parseRevision('{"graphicStyle":"banana","graphic":{"statFrom":"9%","headline":""}}', 'graphic')
+  assert.equal(out.graphicStyle, 'hook')
+  assert.deepEqual(out.graphic, { statFrom: '9%' })
+  assert.equal(out.copy, undefined)
+})
+
+test('parseRevision(both) returns copy and graphic, tolerating fences/prose', () => {
+  const out = parseRevision('Sure:\n```json\n{"copy":"c","cta":"Book","graphicStyle":"stat","graphic":{"statTo":"2%"}}\n```', 'both')
+  assert.equal(out.copy, 'c')
+  assert.equal(out.graphicStyle, 'stat')
+  assert.deepEqual(out.graphic, { statTo: '2%' })
+})
+
+test('parseRevision throws when there is no object', () => {
+  assert.throws(() => parseRevision('the model refused', 'copy'))
 })
