@@ -77,3 +77,24 @@ reaction bar) with an auto-generated, on-brand graphic in the image slot.
   via the preview→filter→psql flow (additive only).
 - **Verify:** `node --import tsx scripts/verify-graphic.mts` renders all three styles from a
   real draft to `/tmp/graphic-*.png`.
+
+## Revise with feedback (built 2026-06-17)
+
+Per-post AI revision: give the AI a note and it rewrites the copy and/or graphic *in place*
+(distinct from the batch-level corpus, which only shapes the next generation run).
+
+- **Control** `src/components/admin/ReviseDraftButton.tsx` — a `ui` field on SocialPosts
+  (under reviewer feedback): a note textarea, a Copy / Graphic / Both target select, and a
+  **Revise with AI** button. POSTs to `/api/social/revise` and reloads the document.
+- **Route** `src/app/api/social/revise/route.ts`: `POST {postId, note, target}`, auth-gated;
+  `target` defaults to `both` if absent/invalid.
+- **Engine** `src/lib/social/revise.ts`: `buildRevisePrompt` (reuses the brand system prompt +
+  `buildBrandConfig`), `parseRevision` (target-filtered, same graphicStyle coercion as the
+  generator), and `reviseDraft` orchestrator. Re-runs guardrails on revised copy; resets
+  `status` to `draft`; **preserves `generationMeta.originalCopy`** so the first-gen→final
+  before/after pair still trains the next batch.
+- **No schema change** — only writes existing fields (`copy`, `cta`, `graphicStyle`, `graphic`,
+  `generationMeta.guardrailFlags`, `status`). Version history (`maxPerDoc: 20`) makes revisions
+  rollback-able. No psql sync needed (the `revise` field is `ui`, not a column).
+- **Verify:** `node --import tsx scripts/verify-revise.mts` runs a real copy revision on a draft
+  and prints before/after + confirms `originalCopy` is preserved.

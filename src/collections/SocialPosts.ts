@@ -92,6 +92,11 @@ export const SocialPosts: CollectionConfig = {
       admin: { description: 'Why it needs changes or was rejected. This text trains the next generation.' },
     },
     {
+      name: 'revise',
+      type: 'ui',
+      admin: { components: { Field: '/components/admin/ReviseDraftButton' } },
+    },
+    {
       name: 'generationMeta',
       type: 'group',
       admin: { description: 'Provenance — read only.' },

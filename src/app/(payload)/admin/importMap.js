@@ -23,6 +23,7 @@ import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { default as default_df6c0aa55761329a5e22e898a5e2065f } from '../../../components/admin/GenerateDraftsButton'
 import { default as default_postPreview_b8c1f2a9 } from '../../../components/admin/PostPreview'
+import { default as default_reviseDraft_c3d4e5f6 } from '../../../components/admin/ReviseDraftButton'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
 export const importMap = {
@@ -51,5 +52,6 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "/components/admin/GenerateDraftsButton#default": default_df6c0aa55761329a5e22e898a5e2065f,
   "/components/admin/PostPreview#default": default_postPreview_b8c1f2a9,
+  "/components/admin/ReviseDraftButton#default": default_reviseDraft_c3d4e5f6,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
 }
