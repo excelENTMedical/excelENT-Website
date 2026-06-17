@@ -1,6 +1,9 @@
+import { getPayloadClient } from '@/lib/payload'
 import { buildSystemPrompt } from './prompt'
 import type { BrandConfigForPrompt, GraphicFields, GraphicStyle } from './types'
-import { GRAPHIC_STYLES, GRAPHIC_KEYS } from './generate'
+import { GRAPHIC_STYLES, GRAPHIC_KEYS, buildBrandConfig } from './generate'
+import { callClaude } from './claude'
+import { checkGuardrails } from './guardrails'
 
 export type ReviseTarget = 'copy' | 'graphic' | 'both'
 
@@ -99,4 +102,42 @@ export function parseRevision(text: string, target: ReviseTarget): RevisionResul
     if (Object.keys(graphic).length || out.graphicStyle) out.graphic = graphic
   }
   return out
+}
+
+/** Rewrite a post's copy and/or graphic in place from a reviewer note. */
+export async function reviseDraft(
+  postId: string | number,
+  opts: { note: string; target: ReviseTarget },
+): Promise<void> {
+  const payload = await getPayloadClient()
+  const post = await payload.findByID({ collection: 'social-posts', id: postId, depth: 1 })
+  if (!post) throw new Error(`Post ${postId} not found`)
+  const p = post as Record<string, any>
+
+  const brandConfig = buildBrandConfig(p.brand as Record<string, any>)
+  const { system, user } = buildRevisePrompt(
+    brandConfig,
+    { copy: p.copy, cta: p.cta, graphicStyle: p.graphicStyle, graphic: p.graphic },
+    opts.note,
+    opts.target,
+  )
+  const { text } = await callClaude(system, user)
+  const rev = parseRevision(text, opts.target)
+
+  const data: Record<string, any> = { status: 'draft' }
+  if (rev.copy !== undefined) {
+    data.copy = rev.copy
+    if (rev.cta !== undefined) data.cta = rev.cta
+    const g = checkGuardrails(rev.copy, brandConfig.bannedTerms, brandConfig.requiredDisclaimers)
+    data.generationMeta = {
+      ...(p.generationMeta || {}),
+      guardrailFlags: g.ok
+        ? ''
+        : `banned: ${g.bannedHits.join(', ')}; missing disclaimers: ${g.missingDisclaimers.join(' | ')}`,
+    }
+  }
+  if (rev.graphicStyle !== undefined) data.graphicStyle = rev.graphicStyle
+  if (rev.graphic !== undefined) data.graphic = rev.graphic
+
+  await payload.update({ collection: 'social-posts', id: postId, data })
 }
