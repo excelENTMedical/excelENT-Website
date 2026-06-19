@@ -69,3 +69,11 @@ test('a non-2xx REST response throws with status and body', async () => {
   const { fn } = fakeFetch(() => ({ status: 422, text: 'bad' }))
   await assert.rejects(() => createPost(buildPostBody({ orgUrn: 'urn:li:organization:9', text: 'x' }), 'tok', fn as any), /422.*bad/)
 })
+
+test('createPost throws when the x-restli-id header is missing', async () => {
+  const { fn } = fakeFetch(() => ({ status: 201 }))
+  await assert.rejects(
+    () => createPost(buildPostBody({ orgUrn: 'urn:li:organization:9', text: 'x' }), 'tok', fn as any),
+    /missing x-restli-id/,
+  )
+})

@@ -93,6 +93,7 @@ export async function createPost(
     signal: AbortSignal.timeout(30_000),
   })
   await ensureOk(res, 'createPost')
-  const postUrn = res.headers.get('x-restli-id') || ''
+  const postUrn = res.headers.get('x-restli-id')
+  if (!postUrn) throw new Error('LinkedIn createPost: missing x-restli-id header')
   return { postUrn }
 }
