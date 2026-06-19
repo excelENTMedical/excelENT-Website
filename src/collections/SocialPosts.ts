@@ -97,6 +97,42 @@ export const SocialPosts: CollectionConfig = {
       admin: { components: { Field: '/components/admin/ReviseDraftButton' } },
     },
     {
+      name: 'scheduledTime',
+      type: 'date',
+      admin: {
+        description: 'Optional. Empty = publish immediately when you click Publish. Set = the scheduler posts it at this time.',
+        date: { pickerAppearance: 'dayAndTime' },
+      },
+    },
+    {
+      name: 'publish',
+      type: 'group',
+      admin: { readOnly: true, description: 'Set automatically when the post is sent to LinkedIn.' },
+      fields: [
+        {
+          name: 'state',
+          type: 'select',
+          defaultValue: 'pending',
+          options: [
+            { label: 'Pending', value: 'pending' },
+            { label: 'Scheduled', value: 'scheduled' },
+            { label: 'Publishing', value: 'publishing' },
+            { label: 'Sent', value: 'sent' },
+            { label: 'Failed', value: 'failed' },
+          ],
+        },
+        { name: 'postUrn', type: 'text' },
+        { name: 'sentAt', type: 'date' },
+        { name: 'error', type: 'textarea' },
+        { name: 'attempts', type: 'number', defaultValue: 0 },
+      ],
+    },
+    {
+      name: 'publishToLinkedIn',
+      type: 'ui',
+      admin: { components: { Field: '/components/admin/PublishToLinkedInButton' } },
+    },
+    {
       name: 'generationMeta',
       type: 'group',
       admin: { description: 'Provenance — read only.' },
