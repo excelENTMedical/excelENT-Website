@@ -24,6 +24,8 @@ import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0
 import { default as default_df6c0aa55761329a5e22e898a5e2065f } from '../../../components/admin/GenerateDraftsButton'
 import { default as default_postPreview_b8c1f2a9 } from '../../../components/admin/PostPreview'
 import { default as default_reviseDraft_c3d4e5f6 } from '../../../components/admin/ReviseDraftButton'
+import { default as default_connectLinkedIn_a1b2c3d4 } from '../../../components/admin/ConnectLinkedInButton'
+import { default as default_publishLinkedIn_e5f6a7b8 } from '../../../components/admin/PublishToLinkedInButton'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
 export const importMap = {
@@ -53,5 +55,7 @@ export const importMap = {
   "/components/admin/GenerateDraftsButton#default": default_df6c0aa55761329a5e22e898a5e2065f,
   "/components/admin/PostPreview#default": default_postPreview_b8c1f2a9,
   "/components/admin/ReviseDraftButton#default": default_reviseDraft_c3d4e5f6,
+  "/components/admin/ConnectLinkedInButton#default": default_connectLinkedIn_a1b2c3d4,
+  "/components/admin/PublishToLinkedInButton#default": default_publishLinkedIn_e5f6a7b8,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
 }
