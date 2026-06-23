@@ -18,8 +18,15 @@ export async function POST(req: Request) {
   }
   if (!body.postId) return NextResponse.json({ error: 'missing postId' }, { status: 400 })
 
-  // If a scheduledTime is set and in the future, mark it scheduled for the worker.
+  // Refuse if the scheduler (or a prior click) already claimed or published this post,
+  // so a manual publish can't race the worker into a double post.
   const post = await payload.findByID({ collection: 'social-posts', id: body.postId, depth: 0, disableErrors: true })
+  const state = post?.publish?.state
+  if (state === 'publishing' || state === 'sent') {
+    return NextResponse.json({ error: `Post is already ${state}` }, { status: 409 })
+  }
+
+  // If a scheduledTime is set and in the future, mark it scheduled for the worker.
   if (post?.scheduledTime && new Date(post.scheduledTime).getTime() > Date.now()) {
     await payload.update({
       collection: 'social-posts',

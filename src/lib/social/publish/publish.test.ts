@@ -46,6 +46,17 @@ test('publishPost refuses a post that is not approved', async () => {
   )
 })
 
+test('publishPost refuses a post already in the sent state (idempotency)', async () => {
+  const { payload } = fakePayload({ ...approved, publish: { state: 'sent', postUrn: 'urn:li:share:9' } })
+  let published = false
+  const publisher = { publish: async () => ((published = true), { postUrn: 'x' }) }
+  await assert.rejects(
+    () => publishPost('p1', { payload: payload as any, publisher, readFileImpl: async () => Buffer.from([]) }),
+    /already published/,
+  )
+  assert.equal(published, false)
+})
+
 test('publishPost works with no asset (text-only)', async () => {
   const { payload } = fakePayload({ ...approved, asset: null })
   let sent: any = null

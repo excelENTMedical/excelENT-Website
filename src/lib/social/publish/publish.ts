@@ -35,6 +35,10 @@ export async function publishPost(postId: string | number, opts: PublishPostOpti
   const post = await payload.findByID({ collection: 'social-posts', id: postId, depth: 1 })
   if (!post) throw new Error(`Post ${postId} not found`)
   if (post.status !== 'approved') throw new Error('Only approved posts can be published')
+  // Idempotency: never re-publish an already-sent post (e.g. a manual click after the
+  // scheduler sent it). 'publishing' is allowed because the worker sets it as its claim
+  // immediately before calling publishPost.
+  if (post.publish?.state === 'sent') throw new Error('Post already published')
 
   const media: PublishMedia[] = []
   const asset = typeof post.asset === 'object' && post.asset ? post.asset : null
