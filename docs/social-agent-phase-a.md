@@ -98,3 +98,35 @@ Per-post AI revision: give the AI a note and it rewrites the copy and/or graphic
   rollback-able. No psql sync needed (the `revise` field is `ui`, not a column).
 - **Verify:** `node --import tsx scripts/verify-revise.mts` runs a real copy revision on a draft
   and prints before/after + confirms `originalCopy` is preserved.
+
+## LinkedIn publishing (built 2026-06-18)
+
+Approved posts publish straight to ExcelENT's LinkedIn Company Page — text + the
+generated graphic — now or on a schedule. Built behind a swappable `Publisher`
+interface (`src/lib/social/publish/`) so Facebook/Instagram/Blotato can be added
+later without touching the orchestrator.
+
+### One-time setup
+1. In the LinkedIn developer app (Community Management API product enabled), register
+   the redirect URL and copy the client id/secret.
+2. Add to `.env`: `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET`,
+   `LINKEDIN_REDIRECT_URI` (must exactly match the registered URL —
+   `https://excelentmedical.com/api/social/linkedin/callback`), then
+   `npm run build && pm2 restart excelent-site --update-env`.
+3. Sync the new DB columns/table (see Phase A schema-sync flow) for `social_posts`
+   (`scheduled_time`, `publish_*`) and the `linkedin_connection` global table.
+4. Start the scheduler:
+   `pm2 start scripts/social-scheduler.mts --name social-scheduler --interpreter node --interpreter-args "--import tsx"`,
+   then `pm2 save`.
+5. In the admin → Social → **LinkedIn Connection**, click **Connect LinkedIn** and
+   authorize. The connected page URN + tokens are stored; tokens auto-refresh.
+
+### Publishing
+1. Generate → review → set a post to **Approved**.
+2. Optionally set **Scheduled Time** (leave empty to publish immediately).
+3. Click **Publish to LinkedIn**. The **Publish** group shows state (sent/failed),
+   the post URN, and any error. Scheduled posts are published by the `social-scheduler`
+   worker when due (retries up to 3 times).
+
+### Not included
+Facebook/Instagram, analytics, comment replies, and editing/deleting a live post.
