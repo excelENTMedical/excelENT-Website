@@ -75,7 +75,8 @@ export async function uploadImageBinary(
   const res = await fetchImpl(uploadUrl, {
     method: 'PUT',
     headers: { Authorization: `Bearer ${token}` },
-    body: bytes,
+    // Node's fetch accepts a Uint8Array body at runtime; the DOM BodyInit type is narrower.
+    body: bytes as unknown as BodyInit,
     signal: AbortSignal.timeout(60_000),
   })
   await ensureOk(res, 'uploadImageBinary')
