@@ -25,6 +25,13 @@ export const BrandProfiles: CollectionConfig = {
     },
     { name: 'active', type: 'checkbox', defaultValue: true, admin: { position: 'sidebar' } },
     {
+      name: 'reviewers',
+      type: 'array',
+      labels: { singular: 'Reviewer', plural: 'Reviewers' },
+      admin: { description: "Email(s) notified to review/approve this brand's posts." },
+      fields: [{ name: 'email', type: 'email', required: true }],
+    },
+    {
       name: 'voice',
       type: 'textarea',
       required: true,

@@ -143,5 +143,16 @@ export const SocialPosts: CollectionConfig = {
         { name: 'guardrailFlags', type: 'textarea', admin: { readOnly: true, description: 'Non-empty means a banned term or missing disclaimer — review before approving.' } },
       ],
     },
+    {
+      name: 'notify',
+      type: 'group',
+      admin: { readOnly: true, description: 'Notification timestamps — set automatically.' },
+      fields: [
+        { name: 'generatedAt', type: 'date' },
+        { name: 'reviewSentAt', type: 'date' },
+        { name: 'reminderSentAt', type: 'date' },
+        { name: 'publishedNotifiedAt', type: 'date' },
+      ],
+    },
   ],
 }
