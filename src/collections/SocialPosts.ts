@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { socialPostsAfterChange } from '@/lib/social/notify/hook'
 
 export const SocialPosts: CollectionConfig = {
   slug: 'social-posts',
@@ -14,6 +15,12 @@ export const SocialPosts: CollectionConfig = {
     create: ({ req }) => Boolean(req.user),
     update: ({ req }) => Boolean(req.user),
     delete: ({ req }) => Boolean(req.user),
+  },
+  hooks: {
+    afterChange: [
+      ({ doc, previousDoc, operation, req, context }) =>
+        socialPostsAfterChange({ doc: doc as any, previousDoc: previousDoc as any, operation, req: req as any, context: context as any }),
+    ],
   },
   fields: [
     { name: 'title', type: 'text', admin: { description: 'Short label; auto-filled by the generator, editable.' } },
