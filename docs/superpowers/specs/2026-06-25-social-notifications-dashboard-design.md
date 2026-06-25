@@ -66,7 +66,7 @@ publish?: { state? }, notify?: { reviewSentAt? } }`.
 |---|---|---|
 | 1 | `missed` | `scheduledTime` < now AND status ∉ {approved, rejected} AND `publish.state` ≠ `sent` |
 | 2 | `overdue` | undecided AND now < `scheduledTime` AND (`scheduledTime` − now) ≤ 24h |
-| 3 | `review-overdue` | `scheduledTime` exists AND status ≠ rejected AND `notify.reviewSentAt` empty AND `reviewSendAt(scheduledTime, leadDays, hourEt, tz)` < now < `scheduledTime` |
+| 3 | `review-overdue` | undecided AND `notify.reviewSentAt` empty AND `reviewSendAt(scheduledTime, leadDays, hourEt, tz)` < now < `scheduledTime` (an *approved* post needs no review email, so it must be undecided to flag) |
 | 4 | `awaiting` | undecided AND `notify.reviewSentAt` set AND now < `scheduledTime` |
 
 Posts matching none → `null` (not shown). Priority resolves the one real overlap
