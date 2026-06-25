@@ -14,9 +14,24 @@ process.env.NODE_ENV = 'production'
 const { getPayloadClient } = await import('../src/lib/payload')
 const { publishPost } = await import('../src/lib/social/publish/publish')
 const { dueWhere, isClaimable } = await import('../src/lib/social/publish/scheduler')
+const { runPlanner } = await import('../src/lib/social/calendar/planner')
 
 const POLL_MS = 60_000
+const PLAN_MS = 3_600_000 // hourly
 const payload = await getPayloadClient()
+
+async function planTick(): Promise<void> {
+  const n = await runPlanner({ payload: payload as any })
+  if (n > 0) payload.logger.info(`social-scheduler: planner created ${n} drafts`)
+}
+
+void (async () => {
+  // run once at startup, then hourly
+  for (;;) {
+    try { await planTick() } catch (err) { payload.logger.error({ err }, 'social-scheduler: planTick error') }
+    await new Promise((r) => setTimeout(r, PLAN_MS))
+  }
+})()
 
 async function tick(): Promise<void> {
   const nowIso = new Date().toISOString()

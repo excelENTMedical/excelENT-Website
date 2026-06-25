@@ -14,7 +14,7 @@ process.env.NODE_ENV = 'production'
 
 const { getPayloadClient } = await import('../src/lib/payload')
 const { loadNotifyConfig } = await import('../src/lib/social/notify/config')
-const { reviewDue, reminderDue } = await import('../src/lib/social/notify/due')
+const { reviewDue, reminderDue, missedDue } = await import('../src/lib/social/notify/due')
 const { notify, withBrand } = await import('../src/lib/social/notify/send')
 
 const POLL_MS = 60_000
@@ -34,6 +34,7 @@ async function tick(): Promise<void> {
       const post = await withBrand(payload as any, raw)
       if (reviewDue(post, now, cfg)) await notify('review', post, cfg, payload as any, now.toISOString())
       if (reminderDue(post, now)) await notify('reminder', post, cfg, payload as any, now.toISOString())
+      if (missedDue(post, now)) await notify('missed', post, cfg, payload as any, now.toISOString())
     } catch (err) {
       payload.logger.error({ err }, `social-notifications: failed for post ${raw.id}`)
     }
