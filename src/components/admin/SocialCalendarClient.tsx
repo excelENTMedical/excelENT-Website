@@ -1,5 +1,6 @@
 'use client'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { canReschedule } from '@/app/api/social/reschedule/guard'
 import { Calendar, dateFnsLocalizer, type View } from 'react-big-calendar'
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop'
 import { format, parse, startOfWeek, getDay } from 'date-fns'
@@ -55,7 +56,7 @@ export default function SocialCalendarClient() {
 
   const onMove = useCallback(async ({ event, start }: any) => {
     const ev = event as Evt
-    if (ev.resource.publish?.state === 'sent') { alert('Cannot reschedule an already-published post.'); return }
+    if (!canReschedule(ev.resource.publish?.state)) { alert('Cannot reschedule an already-published post.'); return }
     const res = await fetch('/api/social/reschedule', {
       method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ postId: ev.id, scheduledTime: new Date(start).toISOString() }),
@@ -97,7 +98,7 @@ export default function SocialCalendarClient() {
           onNavigate={setDate}
           views={['month', 'week', 'day', 'agenda']}
           onEventDrop={onMove}
-          draggableAccessor={(e: any) => (e as Evt).resource.publish?.state !== 'sent'}
+          draggableAccessor={(e: any) => canReschedule((e as Evt).resource.publish?.state)}
           onSelectEvent={(e: any) => { window.location.href = `/admin/collections/social-posts/${(e as Evt).id}` }}
           eventPropGetter={(e: any) => {
             const st = (e as Evt).resource.publish?.state || 'pending'

@@ -91,3 +91,31 @@ test('generateDrafts passes createContext to payload.create and honors injected 
   assert.equal(createCalls[0].collection, 'social-posts')
   assert.equal(createCalls[0].context.skipNotify, true)
 })
+
+test('generateDrafts caps created posts to opts.count even when model returns more drafts', async () => {
+  const createCalls: any[] = []
+  let nextId = 10
+  const fakePayload = {
+    findByID: async () => ({
+      id: 1, name: 'Brand', voice: 'v', audience: 'a',
+      themes: [], defaultCtas: [], bannedTerms: [], requiredDisclaimers: [], seedExamples: [],
+    }),
+    find: async () => ({ docs: [] }),
+    create: async (args: any) => { createCalls.push(args); return { id: nextId++ } },
+  }
+  // Model returns TWO drafts despite count:1 request
+  const fakeClaude = async () => ({
+    text: '[{"copy":"Draft one","graphicStyle":"hook","graphic":{}},{"copy":"Draft two","graphicStyle":"hook","graphic":{}}]',
+  })
+
+  const ids = await generateDrafts(
+    '1',
+    { theme: 'T', platform: 'linkedin', language: 'en', count: 1 },
+    {},
+    { payload: fakePayload as any, callClaudeImpl: fakeClaude as any },
+  )
+
+  // Exactly ONE create call — the second draft must be sliced off
+  assert.equal(createCalls.length, 1, 'should create exactly 1 post when count:1')
+  assert.equal(ids.length, 1, 'should return exactly 1 id')
+})

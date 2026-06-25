@@ -117,7 +117,7 @@ export async function generateDrafts(
   const system = buildSystemPrompt(brandConfig)
   const user = buildUserPrompt(brandConfig, corpus, opts)
   const { text } = await callClaudeImpl(system, user)
-  const drafts = parseDrafts(text)
+  const drafts = parseDrafts(text).slice(0, opts.count)
 
   const assetRes = await payload.find({
     collection: 'social-assets',
