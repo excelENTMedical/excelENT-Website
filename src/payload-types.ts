@@ -79,6 +79,7 @@ export interface Config {
     'brand-profiles': BrandProfile;
     'social-assets': SocialAsset;
     'social-posts': SocialPost;
+    'social-campaigns': SocialCampaign;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -98,6 +99,7 @@ export interface Config {
     'brand-profiles': BrandProfilesSelect<false> | BrandProfilesSelect<true>;
     'social-assets': SocialAssetsSelect<false> | SocialAssetsSelect<true>;
     'social-posts': SocialPostsSelect<false> | SocialPostsSelect<true>;
+    'social-campaigns': SocialCampaignsSelect<false> | SocialCampaignsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -549,6 +551,12 @@ export interface BrandProfile {
    * Free text for now, e.g. "3 posts/week". Guidance only in Phase A.
    */
   cadence?: string | null;
+  postingSlots?: {
+    platform: 'linkedin' | 'facebook' | 'instagram';
+    dayOfWeek: '0' | '1' | '2' | '3' | '4' | '5' | '6';
+    time: string;
+    id?: string | null;
+  }[] | null;
   /**
    * Words/phrases that must never appear. Compliance guardrail.
    */
@@ -703,6 +711,8 @@ export interface SocialPost {
    */
   reviewerFeedback?: string | null;
   scheduledTime?: string | null;
+  slotSource?: ('manual' | 'auto') | null;
+  campaign?: (number | null) | SocialCampaign;
   publish?: {
     state?: ('pending' | 'scheduled' | 'publishing' | 'sent' | 'failed') | null;
     postUrn?: string | null;
@@ -730,7 +740,20 @@ export interface SocialPost {
     reviewSentAt?: string | null
     reminderSentAt?: string | null
     publishedNotifiedAt?: string | null
+    missedAlertSentAt?: string | null
   }
+  updatedAt: string;
+  createdAt: string;
+}
+export interface SocialCampaign {
+  id: number;
+  name: string;
+  brand: number | BrandProfile;
+  startDate: string;
+  endDate: string;
+  platforms?: ('linkedin' | 'facebook' | 'instagram')[] | null;
+  priority?: number | null;
+  themes?: { theme: string; description?: string | null; id?: string | null }[] | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1135,6 +1158,7 @@ export interface BrandProfilesSelect<T extends boolean = true> {
       };
   platforms?: T;
   cadence?: T;
+  postingSlots?: T | { platform?: T; dayOfWeek?: T; time?: T; id?: T };
   bannedTerms?:
     | T
     | {
@@ -1223,6 +1247,8 @@ export interface SocialPostsSelect<T extends boolean = true> {
   status?: T;
   reviewerFeedback?: T;
   scheduledTime?: T;
+  slotSource?: T;
+  campaign?: T;
   publish?:
     | T
     | {
@@ -1248,6 +1274,17 @@ export interface SocialPostsSelect<T extends boolean = true> {
         reminderSentAt?: T
         publishedNotifiedAt?: T
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+export interface SocialCampaignsSelect<T extends boolean = true> {
+  name?: T;
+  brand?: T;
+  startDate?: T;
+  endDate?: T;
+  platforms?: T;
+  priority?: T;
+  themes?: T | { theme?: T; description?: T; id?: T };
   updatedAt?: T;
   createdAt?: T;
 }
