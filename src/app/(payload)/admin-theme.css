@@ -1,0 +1,47 @@
+/* ExcelENT admin theme — brand accents over Payload's dark base.
+   Admin-scoped: imported only in (payload)/layout.tsx, AFTER Payload's CSS. */
+:root {
+  --ee-purple: #89007a;
+  --ee-purple-light: #c25bab;
+  --ee-blue: #459fdc;
+  --ee-navy: #061b42;
+}
+
+/* Primary buttons: Save, Create new, Connect LinkedIn, etc. */
+.btn--style-primary,
+.btn--style-primary:link,
+.btn--style-primary:visited {
+  background-color: var(--ee-purple);
+  border-color: var(--ee-purple);
+  color: #fff;
+}
+.btn--style-primary:hover,
+.btn--style-primary:focus {
+  background-color: var(--ee-purple-light);
+  border-color: var(--ee-purple-light);
+  color: #fff;
+}
+
+/* Active / hovered nav item */
+.nav__link--active,
+.nav .nav__link.active {
+  color: var(--ee-blue);
+  box-shadow: inset 2px 0 0 var(--ee-purple);
+}
+.nav__link:hover {
+  color: var(--ee-blue);
+}
+
+/* Form field focus accents */
+.field-type input:focus,
+.field-type textarea:focus,
+.field-type .rs__control--is-focused {
+  border-color: var(--ee-purple) !important;
+  box-shadow: 0 0 0 1px var(--ee-purple) !important;
+}
+
+/* Checkbox / radio checked state */
+input[type='checkbox']:checked,
+input[type='radio']:checked {
+  accent-color: var(--ee-purple);
+}
