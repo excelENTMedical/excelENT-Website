@@ -130,3 +130,29 @@ later without touching the orchestrator.
 
 ### Not included
 Facebook/Instagram, analytics, comment replies, and editing/deleting a live post.
+
+### Connection go-live status (2026-06-25 — in progress)
+Code/feature is complete and deployed; the only blocker is LinkedIn API access on
+the app side. Current state:
+- App: `excelENT-Social` was the first app but only had **Share on LinkedIn**
+  (`w_member_social`). Community Management API requires being the **only** product
+  on an app, so a **new app** was created (Option B). Its Client ID/Secret are in
+  `.env` (`LINKEDIN_CLIENT_ID` / `LINKEDIN_CLIENT_SECRET`); redirect URI unchanged.
+- ✅ Redirect URI matches and the callback is now reached.
+- ❌ **Blocked:** authorize returns `invalid_scope_error` — the org scopes
+  `w_organization_social` + `rw_organization_admin` are not yet granted on the new
+  app. Community Management API must be **requested AND granted**, which requires
+  **verifying the app against the ExcelENT LinkedIn Company Page** (a Page admin
+  approves a verification link on the app's Settings tab).
+
+**Next session — to finish:**
+1. On the new app: confirm **Community Management API** is granted and the two org
+   scopes appear under **Auth → OAuth 2.0 scopes** (complete Page verification if not).
+2. Admin → Social → **LinkedIn Connection → Connect LinkedIn**, authorize with a
+   **Page-admin** account → expect `…?connected=1`.
+3. Verify the `linkedin_connection` row (org URN + tokens + expiry), then run the
+   publish smoke test (immediate + one scheduled post).
+4. **Rotate** the LinkedIn client secret (it transited chat) — edit `.env` directly,
+   then `pm2 restart excelent-site social-scheduler --update-env`.
+5. Step 3 (git): user commits `src/payload.config.ts` + `src/payload-types.ts`
+   (both tracked+modified) and pushes the branch from their own terminal.
