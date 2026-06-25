@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { parseDrafts, buildBrandConfig } from './generate'
+import { parseDrafts, buildBrandConfig, generateDrafts } from './generate'
 
 test('parses a clean JSON array', () => {
   const out = parseDrafts('[{"copy":"hi","cta":"Book"}]')
@@ -65,4 +65,29 @@ test('buildBrandConfig maps a brand doc to prompt config', () => {
   assert.deepEqual(cfg.bannedTerms, ['guaranteed'])
   assert.deepEqual(cfg.requiredDisclaimers, ['D'])
   assert.deepEqual(cfg.seedExamples, ['ex'])
+})
+
+test('generateDrafts passes createContext to payload.create and honors injected deps', async () => {
+  const createCalls: any[] = []
+  const fakePayload = {
+    findByID: async () => ({
+      id: 1, name: 'Brand', voice: 'v', audience: 'a',
+      themes: [], defaultCtas: [], bannedTerms: [], requiredDisclaimers: [], seedExamples: [],
+    }),
+    find: async () => ({ docs: [] }),
+    create: async (args: any) => { createCalls.push(args); return { id: 42 } },
+  }
+  const fakeClaude = async () => ({ text: '[{"copy":"Hello world","graphicStyle":"hook","graphic":{}}]' })
+
+  const ids = await generateDrafts(
+    '1',
+    { theme: 'T', platform: 'linkedin', language: 'en', count: 1 },
+    { skipNotify: true },
+    { payload: fakePayload as any, callClaudeImpl: fakeClaude as any },
+  )
+
+  assert.deepEqual(ids, ['42'])
+  assert.equal(createCalls.length, 1)
+  assert.equal(createCalls[0].collection, 'social-posts')
+  assert.equal(createCalls[0].context.skipNotify, true)
 })

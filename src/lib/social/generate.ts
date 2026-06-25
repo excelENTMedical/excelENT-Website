@@ -76,8 +76,19 @@ export function buildBrandConfig(brand: Record<string, any>): BrandConfigForProm
   }
 }
 
-export async function generateDrafts(brandId: string, opts: GenerateOptions): Promise<string[]> {
-  const payload = await getPayloadClient()
+export interface GenerateDraftsDeps {
+  payload?: Awaited<ReturnType<typeof getPayloadClient>>
+  callClaudeImpl?: typeof callClaude
+}
+
+export async function generateDrafts(
+  brandId: string,
+  opts: GenerateOptions,
+  createContext?: Record<string, unknown>,
+  deps?: GenerateDraftsDeps,
+): Promise<string[]> {
+  const payload = deps?.payload ?? (await getPayloadClient())
+  const callClaudeImpl = deps?.callClaudeImpl ?? callClaude
 
   const brand = await payload.findByID({ collection: 'brand-profiles', id: brandId })
   if (!brand) throw new Error(`Brand ${brandId} not found`)
@@ -105,7 +116,7 @@ export async function generateDrafts(brandId: string, opts: GenerateOptions): Pr
 
   const system = buildSystemPrompt(brandConfig)
   const user = buildUserPrompt(brandConfig, corpus, opts)
-  const { text } = await callClaude(system, user)
+  const { text } = await callClaudeImpl(system, user)
   const drafts = parseDrafts(text)
 
   const assetRes = await payload.find({
@@ -127,6 +138,7 @@ export async function generateDrafts(brandId: string, opts: GenerateOptions): Pr
     const assetId = pickAsset()
     const doc = await payload.create({
       collection: 'social-posts',
+      context: createContext,
       data: {
         title: `[${brandConfig.name} · ${opts.platform}] ${[...d.copy].slice(0, 50).join('')}`,
         brand: Number(brandId),
