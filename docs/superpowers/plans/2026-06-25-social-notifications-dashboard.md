@@ -86,8 +86,10 @@ test('awaiting: undecided, review email sent, >24h before go-live', () => {
 })
 
 test('review-overdue: undecided, no review email, past send time, >24h out', () => {
-  // Go-live far out so reviewSendAt(2 business days before, 9am ET) is already in the past.
-  const post = { status: 'draft', scheduledTime: hours(72), notify: { reviewSentAt: null } }
+  // +48h go-live → reviewSendAt (2 business days before, 9am ET) = 2026-06-24T13:00Z,
+  // which is before NOW (18:00Z); and 48h > 24h so it is not the overdue bucket.
+  // (Verified against the real reviewSendAt: +48h reviewSendAt<NOW true, +72h false.)
+  const post = { status: 'draft', scheduledTime: hours(48), notify: { reviewSentAt: null } }
   assert.equal(classify(post, NOW, CFG), 'review-overdue')
 })
 
