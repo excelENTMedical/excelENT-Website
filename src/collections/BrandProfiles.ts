@@ -71,6 +71,41 @@ export const BrandProfiles: CollectionConfig = {
       admin: { description: 'Free text for now, e.g. "3 posts/week". Guidance only in Phase A.' },
     },
     {
+      name: 'postingSlots',
+      type: 'array',
+      labels: { singular: 'Posting slot', plural: 'Posting slots' },
+      admin: { description: 'Machine-readable cadence. Each row = one recurring weekly slot the planner fills. (Supersedes the free-text "cadence" field above.)' },
+      fields: [
+        {
+          name: 'platform',
+          type: 'select',
+          required: true,
+          defaultValue: 'linkedin',
+          options: [
+            { label: 'LinkedIn', value: 'linkedin' },
+            { label: 'Facebook', value: 'facebook' },
+            { label: 'Instagram', value: 'instagram' },
+          ],
+        },
+        {
+          name: 'dayOfWeek',
+          type: 'select',
+          required: true,
+          admin: { description: 'Day of week (Eastern Time).' },
+          options: [
+            { label: 'Sunday', value: '0' },
+            { label: 'Monday', value: '1' },
+            { label: 'Tuesday', value: '2' },
+            { label: 'Wednesday', value: '3' },
+            { label: 'Thursday', value: '4' },
+            { label: 'Friday', value: '5' },
+            { label: 'Saturday', value: '6' },
+          ],
+        },
+        { name: 'time', type: 'text', required: true, defaultValue: '09:00', admin: { description: 'Time of day in ET, 24h "HH:mm" (e.g. 09:00, 14:30).' } },
+      ],
+    },
+    {
       name: 'bannedTerms',
       type: 'array',
       labels: { singular: 'Banned term', plural: 'Banned terms' },

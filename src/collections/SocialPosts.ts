@@ -112,6 +112,17 @@ export const SocialPosts: CollectionConfig = {
       },
     },
     {
+      name: 'slotSource',
+      type: 'select',
+      defaultValue: 'manual',
+      admin: { position: 'sidebar', readOnly: true, description: 'How this post reached the calendar.' },
+      options: [
+        { label: 'Manual', value: 'manual' },
+        { label: 'Auto-filled', value: 'auto' },
+      ],
+    },
+    { name: 'campaign', type: 'relationship', relationTo: 'social-campaigns', admin: { position: 'sidebar', description: 'Set when the slot fell inside a campaign window.' } },
+    {
       name: 'publish',
       type: 'group',
       admin: { readOnly: true, description: 'Set automatically when the post is sent to LinkedIn.' },
