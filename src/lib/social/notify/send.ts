@@ -3,13 +3,14 @@ import type { NotifyEvent, NotifyConfig, NotifyPost } from './types'
 import { recipientsFor } from './recipients'
 import { renderEmail } from './email'
 
-type StampField = 'generatedAt' | 'reviewSentAt' | 'reminderSentAt' | 'publishedNotifiedAt'
+type StampField = 'generatedAt' | 'reviewSentAt' | 'reminderSentAt' | 'publishedNotifiedAt' | 'missedAlertSentAt'
 
 const STAMP_FIELD: Record<NotifyEvent, StampField> = {
   generated: 'generatedAt',
   review: 'reviewSentAt',
   reminder: 'reminderSentAt',
   published: 'publishedNotifiedAt',
+  missed: 'missedAlertSentAt',
 }
 
 export interface SendablePayload {

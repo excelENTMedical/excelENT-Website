@@ -20,6 +20,14 @@ export function reminderDue(post: NotifyPost, now: Date): boolean {
   return now.getTime() >= deadline
 }
 
+export function missedDue(post: NotifyPost, now: Date): boolean {
+  if (!post.scheduledTime) return false
+  if (post.status === 'approved' || post.status === 'rejected') return false
+  if (TERMINAL.has(post.publish?.state ?? '')) return false
+  if (post.notify?.missedAlertSentAt) return false
+  return now.getTime() > new Date(post.scheduledTime).getTime()
+}
+
 export function immediateEvents(args: {
   operation: 'create' | 'update'
   doc: NotifyPost

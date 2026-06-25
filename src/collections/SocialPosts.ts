@@ -170,6 +170,7 @@ export const SocialPosts: CollectionConfig = {
         { name: 'reviewSentAt', type: 'date' },
         { name: 'reminderSentAt', type: 'date' },
         { name: 'publishedNotifiedAt', type: 'date' },
+        { name: 'missedAlertSentAt', type: 'date' },
       ],
     },
   ],

@@ -1,7 +1,7 @@
 // src/lib/social/notify/due.test.ts
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { reviewDue, reminderDue, immediateEvents } from './due'
+import { reviewDue, reminderDue, immediateEvents, missedDue } from './due'
 import type { NotifyConfig, NotifyPost } from './types'
 
 const cfg: NotifyConfig = { leadDays: 2, hourEt: 9, tz: 'America/New_York', teamEmails: [], serverUrl: '' }
@@ -38,6 +38,26 @@ test('immediateEvents flags generated on create', () => {
   assert.deepEqual(immediateEvents({ operation: 'create', doc: base }), ['generated'])
   assert.deepEqual(immediateEvents({ operation: 'create', doc: { ...base, notify: { generatedAt: 'x' } } }), [])
   assert.deepEqual(immediateEvents({ operation: 'update', doc: base }), [])
+})
+
+test('missedDue: true when go-live passed and still unapproved', () => {
+  const post: any = { id: 1, copy: 'x', platform: 'linkedin', status: 'draft', scheduledTime: '2026-07-06T13:00:00.000Z', publish: { state: 'pending' }, notify: {} }
+  assert.equal(missedDue(post, new Date('2026-07-06T13:01:00.000Z')), true)
+})
+
+test('missedDue: false before go-live', () => {
+  const post: any = { id: 1, copy: 'x', platform: 'linkedin', status: 'draft', scheduledTime: '2026-07-06T13:00:00.000Z', publish: { state: 'pending' }, notify: {} }
+  assert.equal(missedDue(post, new Date('2026-07-06T12:00:00.000Z')), false)
+})
+
+test('missedDue: false when approved (it will publish, not miss)', () => {
+  const post: any = { id: 1, copy: 'x', platform: 'linkedin', status: 'approved', scheduledTime: '2026-07-06T13:00:00.000Z', publish: { state: 'scheduled' }, notify: {} }
+  assert.equal(missedDue(post, new Date('2026-07-06T14:00:00.000Z')), false)
+})
+
+test('missedDue: false once alert already sent (idempotent)', () => {
+  const post: any = { id: 1, copy: 'x', platform: 'linkedin', status: 'draft', scheduledTime: '2026-07-06T13:00:00.000Z', publish: { state: 'pending' }, notify: { missedAlertSentAt: '2026-07-06T13:05:00.000Z' } }
+  assert.equal(missedDue(post, new Date('2026-07-06T14:00:00.000Z')), false)
 })
 
 test('immediateEvents flags published on transition into sent', () => {

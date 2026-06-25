@@ -1,4 +1,4 @@
-export type NotifyEvent = 'generated' | 'review' | 'reminder' | 'published'
+export type NotifyEvent = 'generated' | 'review' | 'reminder' | 'published' | 'missed'
 
 export interface NotifyBrand {
   name?: string | null
@@ -22,6 +22,7 @@ export interface NotifyPost {
     reviewSentAt?: string | null
     reminderSentAt?: string | null
     publishedNotifiedAt?: string | null
+    missedAlertSentAt?: string | null
   } | null
   brand?: NotifyBrand | string | number | null
 }

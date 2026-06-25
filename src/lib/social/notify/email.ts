@@ -5,6 +5,7 @@ const LABELS: Record<NotifyEvent, string> = {
   review: 'Draft ready for review',
   reminder: 'Approval needed — 24h to go-live',
   published: 'Post published',
+  missed: 'Missed — not approved in time, NOT published',
 }
 
 function brandName(post: NotifyPost): string {
