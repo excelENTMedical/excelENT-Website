@@ -49,8 +49,13 @@ Idempotent via read-only `notify.*` stamps on each post. Pure logic in
 
 ## ⏳ Remaining — to finish tomorrow
 
-1. **Confirm owner receipt** of the live test emails (Eric ×2, Zack ×2, Samir ×1).
-   If any missing, check SES sandbox / verified identities for that address.
+1. **Owner receipt — SES-confirmed delivered (2026-06-25).** `aws ses
+   get-send-statistics` shows the owner burst in the `2026-06-25T01:49Z` window:
+   exactly **5 delivery attempts, 0 bounces, 0 complaints, 0 rejects** (Eric ×2,
+   Zack ×2, Samir ×1). Across all retained windows: 183 attempts, 0 bounces, 0
+   complaints, 0 rejects → all three addresses valid + accepted by the recipient
+   mail servers. **Only open sub-item:** inbox-vs-spam placement (SES can't report
+   this) — ask an owner to eyeball; check spam if missing.
 2. **Admin-UI hook path** — NOT yet live. Drafts created/edited *in the Payload
    admin* won't fire the generated email until `excelent-site` is rebuilt and
    restarted: `npm run build && pm2 restart excelent-site`.
