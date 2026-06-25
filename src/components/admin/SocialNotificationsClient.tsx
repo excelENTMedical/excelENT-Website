@@ -161,7 +161,7 @@ export default function SocialNotificationsClient() {
           <Section title="Past go-live, unapproved" color={RED} posts={b.missed}
             note={(p) => `was due ${fmtEt(p.scheduledTime)}`} />
           <Section title="Approval overdue (<24h)" color={RED} posts={b.overdue}
-            note={(p) => `reminder ${ago(p.notify?.reminderSentAt)}`} />
+            note={(p) => (p.notify?.reminderSentAt ? `reminder sent ${ago(p.notify.reminderSentAt)}` : 'reminder not yet sent')} />
           <Section title="Review email overdue" color={AMBER} posts={b.reviewOverdue}
             note={() => 'review never sent'} />
           <Section title="Awaiting approval" color={MUTED} posts={b.awaiting}
