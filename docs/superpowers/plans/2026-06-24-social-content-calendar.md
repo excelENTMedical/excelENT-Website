@@ -557,24 +557,36 @@ git commit -m "feat(social): selectTheme campaign overlay + LRU rotation"
 **Files:**
 - Create: `src/lib/social/calendar/planner.ts`
 - Test: `src/lib/social/calendar/planner.test.ts`
-- Modify: `src/lib/social/generate.ts` (add optional `createContext` param)
-- Test: `src/lib/social/generate.test.ts` (add context-passthrough test)
+- Modify: `src/lib/social/generate.ts` (add optional `createContext` param + injectable `deps`)
+- Test: `src/lib/social/generate.test.ts` (add a REAL context-passthrough test)
 
 **Interfaces:**
 - Consumes: `materializeSlots` (Task 3), `selectTheme`/`CampaignForPlanning` (Task 4), `generateDrafts` (modified here).
 - Produces: `slotKey(platform: string, iso: string): string`, `runPlanner(deps: PlannerDeps): Promise<number>` (returns count of drafts created), `PlannerDeps`.
-- `generateDrafts(brandId, opts, createContext?)` — `createContext` is passed to `payload.create({ context })`; the planner passes `{ skipNotify: true }` so 14-day batches don't email a "generated" notice per draft.
+- `generateDrafts(brandId, opts, createContext?, deps?)` — `createContext` is passed to `payload.create({ context })`; the planner passes `{ skipNotify: true }` so 14-day batches don't email a "generated" notice per draft. `deps` makes the function unit-testable: `{ payload?, callClaudeImpl? }` default to the real `getPayloadClient()` / `callClaude`.
 
-- [ ] **Step 1: Modify generate.ts to accept a create context**
+- [ ] **Step 1: Make generate.ts accept a create context + injectable deps**
 
-Change the signature and the `payload.create` call in `src/lib/social/generate.ts`:
+In `src/lib/social/generate.ts`, change the signature:
 ```ts
+export interface GenerateDraftsDeps {
+  payload?: Awaited<ReturnType<typeof getPayloadClient>>
+  callClaudeImpl?: typeof callClaude
+}
+
 export async function generateDrafts(
   brandId: string,
   opts: GenerateOptions,
   createContext?: Record<string, unknown>,
+  deps?: GenerateDraftsDeps,
 ): Promise<string[]> {
 ```
+Replace the first two lines of the body so the client and the Claude call are injectable:
+```ts
+  const payload = deps?.payload ?? (await getPayloadClient())
+  const callClaudeImpl = deps?.callClaudeImpl ?? callClaude
+```
+Change the model call from `await callClaude(system, user)` to `await callClaudeImpl(system, user)`.
 In the `payload.create({ collection: 'social-posts', ... })` call (line ~128), add `context` as a sibling of `data`:
 ```ts
     const doc = await payload.create({
@@ -586,19 +598,36 @@ In the `payload.create({ collection: 'social-posts', ... })` call (line ~128), a
     })
 ```
 
-- [ ] **Step 2: Write generate context-passthrough test**
+- [ ] **Step 2: Write a REAL context-passthrough test**
 
-Add to `src/lib/social/generate.test.ts` (it already imports/mocks payload — follow the existing pattern in that file; if it tests `parseDrafts`/`buildBrandConfig` only, add this focused unit instead):
+Add to `src/lib/social/generate.test.ts` (follow the existing import style in that file — it is an ESM `node:test` module; do NOT use `require`):
 ```ts
-import { test } from 'node:test'
-import assert from 'node:assert/strict'
+test('generateDrafts passes createContext to payload.create and honors injected deps', async () => {
+  const createCalls: any[] = []
+  const fakePayload = {
+    findByID: async () => ({
+      id: 1, name: 'Brand', voice: 'v', audience: 'a',
+      themes: [], defaultCtas: [], bannedTerms: [], requiredDisclaimers: [], seedExamples: [],
+    }),
+    find: async () => ({ docs: [] }),
+    create: async (args: any) => { createCalls.push(args); return { id: 42 } },
+  }
+  const fakeClaude = async () => ({ text: '[{"copy":"Hello world","graphicStyle":"hook","graphic":{}}]' })
 
-test('generateDrafts signature accepts an optional createContext (compile + arity)', () => {
-  // Type-level guard: the third parameter exists. Runtime arity check:
-  const { generateDrafts } = require('./generate')
-  assert.ok(generateDrafts.length >= 2)
+  const ids = await generateDrafts(
+    '1',
+    { theme: 'T', platform: 'linkedin', language: 'en', count: 1 },
+    { skipNotify: true },
+    { payload: fakePayload as any, callClaudeImpl: fakeClaude as any },
+  )
+
+  assert.deepEqual(ids, ['42'])
+  assert.equal(createCalls.length, 1)
+  assert.equal(createCalls[0].collection, 'social-posts')
+  assert.equal(createCalls[0].context.skipNotify, true)
 })
 ```
+This drives the real `generateDrafts` end-to-end with no network/DB, asserting the new `context` actually reaches `payload.create`. (Ensure `generateDrafts` is imported at the top of the test file.)
 
 - [ ] **Step 3: Write the failing planner test**
 
