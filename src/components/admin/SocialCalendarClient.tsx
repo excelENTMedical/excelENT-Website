@@ -56,7 +56,7 @@ export default function SocialCalendarClient() {
 
   const onMove = useCallback(async ({ event, start }: any) => {
     const ev = event as Evt
-    if (!canReschedule(ev.resource.publish?.state)) { alert('Cannot reschedule an already-published post.'); return }
+    if (!canReschedule(ev.resource.publish?.state)) { alert('Cannot reschedule a post that is already publishing or published.'); return }
     const res = await fetch('/api/social/reschedule', {
       method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ postId: ev.id, scheduledTime: new Date(start).toISOString() }),
