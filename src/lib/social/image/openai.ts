@@ -45,7 +45,7 @@ export async function editImage(args: {
   form.append('quality', args.quality || c.quality)
   form.append('input_fidelity', 'high')
   for (const ref of args.references) {
-    form.append('image[]', new Blob([ref.buffer], { type: ref.mimetype }), ref.filename)
+    form.append('image[]', new Blob([ref.buffer as unknown as BlobPart], { type: ref.mimetype }), ref.filename)
   }
   const res = await fetch(API_EDITS, {
     method: 'POST',
