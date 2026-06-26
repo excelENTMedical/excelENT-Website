@@ -7,25 +7,31 @@
     "build": "cross-env NODE_OPTIONS=--no-deprecation next build",
     "start": "cross-env NODE_OPTIONS=--no-deprecation next start",
     "lint": "next lint",
-    "generate:types": "payload generate:types"
+    "generate:types": "node --import tsx node_modules/payload/dist/bin/index.js generate:types",
+    "test": "node --import tsx --test \"src/**/*.test.ts\""
   },
   "dependencies": {
+    "@aws-sdk/client-sesv2": "^3.1045.0",
     "@payloadcms/db-postgres": "^3.0.0",
     "@payloadcms/next": "^3.0.0",
     "@payloadcms/richtext-lexical": "^3.0.0",
     "cross-env": "^7.0.3",
+    "date-fns": "^3.6.0",
+    "date-fns-tz": "^3.2.0",
     "graphql": "^16.9.0",
     "mysql2": "^3.22.0",
     "next": "^15.1.0",
     "next-intl": "^3.22.0",
     "payload": "^3.0.0",
     "react": "^19.0.0",
+    "react-big-calendar": "^1.20.0",
     "react-dom": "^19.0.0",
     "sharp": "^0.33.5"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
+    "@types/react-big-calendar": "^1.16.3",
     "@types/react-dom": "^19.0.0",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.0.0",

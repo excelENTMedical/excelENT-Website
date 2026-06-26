@@ -26,6 +26,11 @@ import { default as default_postPreview_b8c1f2a9 } from '../../../components/adm
 import { default as default_reviseDraft_c3d4e5f6 } from '../../../components/admin/ReviseDraftButton'
 import { default as default_connectLinkedIn_a1b2c3d4 } from '../../../components/admin/ConnectLinkedInButton'
 import { default as default_publishLinkedIn_e5f6a7b8 } from '../../../components/admin/PublishToLinkedInButton'
+import { default as default_socialCalendar_aa11bb22 } from '../../../components/admin/SocialCalendar'
+import { default as default_socialNotifications_bb22cc33 } from '../../../components/admin/SocialNotifications'
+import { default as default_brandLogo_ee010101 } from '../../../components/admin/BrandLogo'
+import { default as default_brandIcon_ee020202 } from '../../../components/admin/BrandIcon'
+import { default as default_loginBranding_ee030303 } from '../../../components/admin/LoginBranding'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
 export const importMap = {
@@ -57,5 +62,10 @@ export const importMap = {
   "/components/admin/ReviseDraftButton#default": default_reviseDraft_c3d4e5f6,
   "/components/admin/ConnectLinkedInButton#default": default_connectLinkedIn_a1b2c3d4,
   "/components/admin/PublishToLinkedInButton#default": default_publishLinkedIn_e5f6a7b8,
+  "/components/admin/SocialCalendar#default": default_socialCalendar_aa11bb22,
+  "/components/admin/SocialNotifications#default": default_socialNotifications_bb22cc33,
+  "/components/admin/BrandLogo#default": default_brandLogo_ee010101,
+  "/components/admin/BrandIcon#default": default_brandIcon_ee020202,
+  "/components/admin/LoginBranding#default": default_loginBranding_ee030303,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
 }
