@@ -41,6 +41,10 @@ export default buildConfig({
           Component: '/components/admin/SocialCalendar',
           path: '/social-calendar',
         },
+        socialNotifications: {
+          Component: '/components/admin/SocialNotifications',
+          path: '/social-notifications',
+        },
       },
     },
   },
