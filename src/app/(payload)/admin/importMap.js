@@ -31,6 +31,7 @@ import { default as default_socialNotifications_bb22cc33 } from '../../../compon
 import { default as default_brandLogo_ee010101 } from '../../../components/admin/BrandLogo'
 import { default as default_brandIcon_ee020202 } from '../../../components/admin/BrandIcon'
 import { default as default_loginBranding_ee030303 } from '../../../components/admin/LoginBranding'
+import { default as default_calendarNavLink_ff040404 } from '../../../components/admin/CalendarNavLink'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
 export const importMap = {
@@ -67,5 +68,6 @@ export const importMap = {
   "/components/admin/BrandLogo#default": default_brandLogo_ee010101,
   "/components/admin/BrandIcon#default": default_brandIcon_ee020202,
   "/components/admin/LoginBranding#default": default_loginBranding_ee030303,
+  "/components/admin/CalendarNavLink#default": default_calendarNavLink_ff040404,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
 }
