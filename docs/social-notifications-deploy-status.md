@@ -56,16 +56,61 @@ Idempotent via read-only `notify.*` stamps on each post. Pure logic in
    complaints, 0 rejects → all three addresses valid + accepted by the recipient
    mail servers. **Only open sub-item:** inbox-vs-spam placement (SES can't report
    this) — ask an owner to eyeball; check spam if missing.
-2. **Admin-UI hook path** — NOT yet live. Drafts created/edited *in the Payload
-   admin* won't fire the generated email until `excelent-site` is rebuilt and
-   restarted: `npm run build && pm2 restart excelent-site`.
-   - **Blocker:** the working tree currently holds a parallel
-     `social-content-calendar` SDD run's uncommitted `payload.config.ts` /
-     `payload-types.ts`. Do the rebuild **only from a clean tree** (after that
-     run is committed) so half-finished work isn't baked into `.next`.
-   - Script-driven paths (generation script, scheduled publish, review/reminder
-     worker) are already fully live and do NOT need this rebuild.
-3. **finishing-a-development-branch** skill once the above is settled.
+2. **Admin-UI hook path + the new Notifications Dashboard — both await ONE
+   rebuild.** Neither is live yet; `npm run build && pm2 restart excelent-site`
+   activates BOTH at once:
+   - the generated-email afterChange hook for drafts created/edited *in the
+     Payload admin* (script-driven paths — generation, scheduled publish,
+     review/reminder worker — are already fully live and do NOT need this), and
+   - the read-only **Notifications Dashboard** at `/admin/social-notifications`
+     (see the Dashboard section below).
+   - **Deploy is HELD by the user pending others** (a coordinated deploy that
+     also ships the admin-branding work + the long-standing b2b-rebuild tree —
+     `npm run build` bakes the WHOLE working tree, ~80+ uncommitted files, into
+     `.next`). After restart: confirm `/admin/social-notifications` loads and
+     `importMap.js` still carries the `socialNotifications` entry (codegen no-ops
+     here, so the hand-edit must survive the build).
+3. **finishing-a-development-branch** — deferred; branch is shared with other
+   in-flight work (admin-branding still partly uncommitted), so no merge/PR yet.
+
+## Notifications Dashboard — built + committed + pushed 2026-06-26
+
+Read-only Payload admin view, alert-first, surfacing posts needing attention in 4
+severity-ranked buckets (missed go-live > approval overdue <24h > review-email
+overdue > awaiting approval); each row links to the post editor. Spec
+`docs/superpowers/specs/2026-06-25-social-notifications-dashboard-design.md`,
+plan `docs/superpowers/plans/2026-06-25-social-notifications-dashboard.md`,
+SDD ledger `.superpowers/sdd/progress-dashboard.md`.
+
+- Pure classifier `src/lib/social/notify/buckets.ts` (+ 11 node:test, green),
+  view `src/components/admin/SocialNotifications{,Client}.tsx`, registered in
+  `payload.config.ts` + `importMap.js` (mirrors the `socialCalendar` view).
+- Built via SDD (3 tasks, each reviewed) + final opus whole-branch review =
+  **Ready to merge: Yes**, no Critical/Important. Commits: `3fdc897`
+  (buckets+tests), `430c1f2` (components), `9985c84` (note polish), `6d7e778`
+  (view registration — surgically committed so co-resident admin-branding edits
+  stayed out). importMap entry already landed in `9c143c1`.
+- No DDL, no new dependency. **Goes live with the same rebuild as item 2.**
+
+## Git / deploy state (2026-06-26)
+
+- Branch `feat/social-agent-phase-a` **pushed to origin** (`7d77193..6d7e778`,
+  in sync). Push works from this box via cached `credential.helper=store` PAT —
+  do it ONLY on the user's explicit say-so, token kept masked. See
+  `project_git_remote` memory.
+- Still uncommitted on the branch (NOT mine — for their owners): admin-branding
+  edits in `payload.config.ts` (graphics/beforeLogin/afterNavLinks/meta) + the
+  `CalendarNavLink` importMap line; and the large b2b-rebuild working tree.
+
+## ▶ Tomorrow — pickup checklist
+
+1. Confirm whether the coordinated deploy is cleared (the "waiting on others").
+2. If cleared: ensure the tree is in the intended deploy state, then
+   `npm run build && pm2 restart excelent-site` → verify `/admin/social-notifications`
+   loads, the generated-email hook fires on an admin draft create, and
+   `importMap.js` still has the `socialNotifications` entry post-build.
+3. Optional inbox/spam eyeball of the owner test emails (item 1 sub-item).
+4. Once all in-flight branch work is settled: finishing-a-development-branch.
 
 ## Known limitations (v1, by design)
 
