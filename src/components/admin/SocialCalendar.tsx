@@ -1,6 +1,31 @@
+import type { AdminViewServerProps } from 'payload'
+import { DefaultTemplate } from '@payloadcms/next/templates'
+import { Gutter } from '@payloadcms/ui'
 import SocialCalendarClient from './SocialCalendarClient'
 
 // Registered as a Payload custom admin view at /admin/social-calendar.
-export default function SocialCalendar() {
-  return <SocialCalendarClient />
+// Wrapped in DefaultTemplate so the admin sidebar nav + chrome stay visible
+// (a bare custom view renders without the nav).
+export default function SocialCalendar({
+  initPageResult,
+  params,
+  searchParams,
+}: AdminViewServerProps) {
+  return (
+    <DefaultTemplate
+      i18n={initPageResult.req.i18n}
+      locale={initPageResult.locale}
+      params={params}
+      payload={initPageResult.req.payload}
+      permissions={initPageResult.permissions}
+      req={initPageResult.req}
+      searchParams={searchParams}
+      user={initPageResult.req.user || undefined}
+      visibleEntities={initPageResult.visibleEntities}
+    >
+      <Gutter>
+        <SocialCalendarClient />
+      </Gutter>
+    </DefaultTemplate>
+  )
 }
