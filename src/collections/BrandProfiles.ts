@@ -127,6 +127,24 @@ export const BrandProfiles: CollectionConfig = {
       fields: [{ name: 'text', type: 'textarea', required: true }],
     },
     {
+      name: 'seedImages',
+      type: 'relationship',
+      relationTo: 'social-assets',
+      hasMany: true,
+      admin: {
+        description:
+          `Example images that define this brand's visual style. Used as references when generating new post images, and selectable as a post's image. Use "Create New" in the picker to upload.`,
+      },
+    },
+    {
+      name: 'imageStyleGuidance',
+      type: 'textarea',
+      admin: {
+        description:
+          'Optional. Free-text visual direction for generated images (e.g. "clean clinical, generous whitespace, navy/purple accents, no stock-photo people").',
+      },
+    },
+    {
       name: 'generate',
       type: 'ui',
       admin: {

@@ -56,6 +56,15 @@ export const SocialPosts: CollectionConfig = {
     { name: 'cta', type: 'text' },
     { name: 'asset', type: 'relationship', relationTo: 'social-assets' },
     {
+      name: 'generateImage',
+      type: 'ui',
+      admin: {
+        components: {
+          Field: '/components/admin/GenerateImageButton',
+        },
+      },
+    },
+    {
       name: 'graphicStyle',
       type: 'select',
       defaultValue: 'hook',
