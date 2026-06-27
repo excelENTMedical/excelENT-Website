@@ -37,12 +37,15 @@ export async function POST(req: Request) {
       : await payload.findByID({ collection: 'brand-profiles', id: post.brand, depth: 1, disableErrors: true })
   const brandId = typeof post.brand === 'object' ? post.brand.id : post.brand
 
-  const prompt = buildImagePrompt(post, brand || {})
+  if (!process.env.OPENAI_API_KEY) {
+    return NextResponse.json({ error: 'image generation is not configured (OPENAI_API_KEY missing)' }, { status: 500 })
+  }
 
   let png: Buffer
   let usedReferences = false
   try {
     const refs = await loadSeedImageFiles(payload, brand)
+    const prompt = buildImagePrompt(post, brand || {}, refs.length > 0)
     if (refs.length > 0) {
       png = await editImage({ prompt, references: refs })
       usedReferences = true

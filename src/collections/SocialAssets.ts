@@ -15,7 +15,7 @@ export const SocialAssets: CollectionConfig = {
     delete: ({ req }) => Boolean(req.user),
   },
   upload: {
-    staticDir: '../public/social-assets',
+    staticDir: '../public/social-assets', // MUST stay in sync with DEFAULT_BASE in src/lib/social/image/refs.ts
     mimeTypes: ['image/*'],
     imageSizes: [
       { name: 'thumbnail', width: 400, height: 400, position: 'centre' },

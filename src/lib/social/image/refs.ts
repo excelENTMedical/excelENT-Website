@@ -7,6 +7,8 @@ export interface SeedFile {
   mimetype: string
 }
 
+// MUST stay in sync with SocialAssets `staticDir` in src/collections/SocialAssets.ts
+// Both must resolve to <project-root>/public/social-assets
 const DEFAULT_BASE = path.join(process.cwd(), 'public', 'social-assets')
 
 /**
@@ -32,7 +34,7 @@ export async function loadSeedImageFiles(
     const filename = asset?.filename
     if (!filename) continue
     try {
-      const buffer = await readFile(path.join(baseDir, filename))
+      const buffer = await readFile(path.join(baseDir, path.basename(filename)))
       out.push({ buffer, filename, mimetype: asset.mimeType || 'image/png' })
     } catch (err) {
       payload?.logger?.warn?.({ err, filename }, 'seed image file unreadable')
