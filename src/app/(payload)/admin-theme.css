@@ -22,26 +22,64 @@
   color: #fff;
 }
 
-/* Active / hovered nav item */
-.nav__link--active,
-.nav .nav__link.active {
-  color: var(--ee-blue);
-  box-shadow: inset 2px 0 0 var(--ee-purple);
+/* Active nav item: recolor the indicator bar (the real active marker in
+   Payload 3.75.0) plus the active/hover link text. */
+.nav__link-indicator {
+  background: var(--ee-purple-light) !important;
+  width: 3px !important;
+}
+.nav__link.active {
+  color: var(--ee-purple-light);
+  background: rgba(194, 91, 171, 0.12);
+  border-radius: 4px;
+  padding-inline-start: 8px;
+  margin-inline-start: -8px;
 }
 .nav__link:hover {
   color: var(--ee-blue);
 }
 
-/* Form field focus accents */
+/* Form field focus accents — Payload sets per-field-type focus rules without
+   !important, so override them here. react-select's focused class is
+   rs__control--menu-is-open in 3.75.0. */
 .field-type input:focus,
+.field-type input:focus-within,
 .field-type textarea:focus,
+.field-type .rs__control--menu-is-open,
 .field-type .rs__control--is-focused {
   border-color: var(--ee-purple) !important;
-  box-shadow: 0 0 0 1px var(--ee-purple) !important;
+  box-shadow: 0 0 0 2px var(--ee-purple) !important;
+  outline: 0 !important;
 }
 
 /* Checkbox / radio checked state */
 input[type='checkbox']:checked,
 input[type='radio']:checked {
   accent-color: var(--ee-purple);
+}
+
+/* Tabs: guarantee horizontal spacing between tab buttons. Reinforces Payload's
+   own margin in case any global reset reaches the admin. */
+.tabs-field__tabs {
+  gap: 4px;
+}
+.tabs-field__tab-button {
+  margin-inline-end: 16px !important;
+}
+
+/* Array row headers: keep the collapsible's "Toggle block" a11y text visually
+   hidden so it never overlaps the custom RowLabel. Payload sets
+   `color: transparent` without !important; force it here. */
+.collapsible__toggle {
+  color: transparent !important;
+}
+
+/* Comfortable padding on the styled action buttons (Save, Create, Cancel,
+   pills). Icon-only affordances (kebab menus, collapse chevrons) keep their
+   tight sizing. */
+.btn--style-primary,
+.btn--style-secondary,
+.btn--style-pill {
+  padding-block: 9px;
+  padding-inline: 18px;
 }
