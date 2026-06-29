@@ -3,7 +3,7 @@ import React from 'react'
 import { useRowLabel } from '@payloadcms/ui'
 
 // Field keys checked in order; first non-empty string wins as the row label.
-const LABEL_KEYS = ['theme', 'cta', 'term', 'specialty', 'email', 'text', 'name']
+const LABEL_KEYS = ['theme', 'cta', 'term', 'tag', 'specialty', 'email', 'text', 'name']
 
 export default function ArrayRowLabel() {
   const { data, rowNumber } = useRowLabel<Record<string, unknown>>()

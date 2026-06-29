@@ -35,6 +35,7 @@ export const SocialCampaigns: CollectionConfig = {
       name: 'themes',
       type: 'array',
       labels: { singular: 'Theme', plural: 'Themes' },
+      admin: { components: { RowLabel: '/components/admin/ArrayRowLabel' } },
       fields: [
         { name: 'theme', type: 'text', required: true },
         { name: 'description', type: 'textarea' },

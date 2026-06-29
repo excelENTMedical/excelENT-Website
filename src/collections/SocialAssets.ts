@@ -34,7 +34,10 @@ export const SocialAssets: CollectionConfig = {
       name: 'tags',
       type: 'array',
       labels: { singular: 'Tag', plural: 'Tags' },
-      admin: { description: 'Theme tags the generator matches against (e.g. "Denials").' },
+      admin: {
+        description: 'Theme tags the generator matches against (e.g. "Denials").',
+        components: { RowLabel: '/components/admin/ArrayRowLabel' },
+      },
       fields: [{ name: 'tag', type: 'text', required: true }],
     },
     {
