@@ -23,12 +23,15 @@ export default function GenerateImageButton() {
       if (!res.ok) throw new Error(data.error || 'failed')
       setMsg(
         data.usedReferences
-          ? "Image generated from the brand’s seed images and attached. Reload to see it."
-          : "Image generated (brand has no seed images — used a text-only prompt). Reload to see it.",
+          ? "Image generated from the brand’s seed images and attached. Refreshing…"
+          : "Image generated (brand has no seed images — used a text-only prompt). Refreshing…",
       )
+      // The admin form doesn't re-pull the asset field on its own, so reload the
+      // page to surface the newly attached image. Each generation has a unique
+      // filename, so there's no stale-cache risk.
+      setTimeout(() => window.location.reload(), 1200)
     } catch (e) {
       setMsg(`Error: ${e instanceof Error ? e.message : 'failed'}`)
-    } finally {
       setBusy(false)
     }
   }

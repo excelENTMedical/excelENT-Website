@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import path from 'path'
 
 export const SocialAssets: CollectionConfig = {
   slug: 'social-assets',
@@ -15,7 +16,12 @@ export const SocialAssets: CollectionConfig = {
     delete: ({ req }) => Boolean(req.user),
   },
   upload: {
-    staticDir: '../public/social-assets', // MUST stay in sync with DEFAULT_BASE in src/lib/social/image/refs.ts
+    // Absolute path under the project's public dir. A bare relative path like
+    // '../public/...' resolves against process.cwd() (the project root in prod),
+    // landing at /opt/bitnami/public — which doesn't exist and isn't writable,
+    // so uploads failed with EACCES. MUST stay in sync with DEFAULT_BASE in
+    // src/lib/social/image/refs.ts (same process.cwd()+public/social-assets base).
+    staticDir: path.join(process.cwd(), 'public', 'social-assets'),
     mimeTypes: ['image/*'],
     imageSizes: [
       { name: 'thumbnail', width: 400, height: 400, position: 'centre' },
