@@ -25,47 +25,6 @@ export const Pages: CollectionConfig = {
       },
     },
     {
-      name: 'content',
-      type: 'richText',
-      localized: true,
-    },
-    {
-      name: 'heroImage',
-      type: 'upload',
-      relationTo: 'media',
-    },
-    {
-      name: 'heroHeadline',
-      type: 'text',
-      localized: true,
-    },
-    {
-      name: 'heroSubheadline',
-      type: 'textarea',
-      localized: true,
-    },
-    {
-      name: 'seo',
-      type: 'group',
-      fields: [
-        {
-          name: 'metaTitle',
-          type: 'text',
-          localized: true,
-        },
-        {
-          name: 'metaDescription',
-          type: 'textarea',
-          localized: true,
-        },
-        {
-          name: 'ogImage',
-          type: 'upload',
-          relationTo: 'media',
-        },
-      ],
-    },
-    {
       name: 'status',
       type: 'select',
       options: [
@@ -76,6 +35,62 @@ export const Pages: CollectionConfig = {
       admin: {
         position: 'sidebar',
       },
+    },
+    {
+      type: 'tabs',
+      tabs: [
+        {
+          label: 'Content',
+          fields: [
+            {
+              name: 'content',
+              type: 'richText',
+              localized: true,
+            },
+            {
+              name: 'heroImage',
+              type: 'upload',
+              relationTo: 'media',
+            },
+            {
+              name: 'heroHeadline',
+              type: 'text',
+              localized: true,
+            },
+            {
+              name: 'heroSubheadline',
+              type: 'textarea',
+              localized: true,
+            },
+          ],
+        },
+        {
+          label: 'SEO',
+          fields: [
+            {
+              name: 'seo',
+              type: 'group',
+              fields: [
+                {
+                  name: 'metaTitle',
+                  type: 'text',
+                  localized: true,
+                },
+                {
+                  name: 'metaDescription',
+                  type: 'textarea',
+                  localized: true,
+                },
+                {
+                  name: 'ogImage',
+                  type: 'upload',
+                  relationTo: 'media',
+                },
+              ],
+            },
+          ],
+        },
+      ],
     },
   ],
 }
