@@ -70,3 +70,40 @@ test('respects the maxEdited cap', () => {
   const c = buildCorpus(many, { maxEdited: 2 })
   assert.equal(c.edited.length, 2)
 })
+
+test('prefers a clean post over a more recent flagged one', () => {
+  const c = buildCorpus(
+    [
+      post({ copy: 'The claim goes out — and comes back denied.', status: 'approved', updatedAt: '2026-08-17T00:00:00.000Z' }),
+      post({ copy: 'Your coders know the payer mix before a claim goes out.', status: 'approved', updatedAt: '2026-08-01T00:00:00.000Z' }),
+    ],
+    { maxApproved: 1 },
+  )
+  assert.deepEqual(c.approved, ['Your coders know the payer mix before a claim goes out.'])
+})
+
+test('collapses repeated openers so one formula cannot fill the corpus', () => {
+  const c = buildCorpus(
+    [
+      // The first FOUR words must match for openerKey to collapse them.
+      post({ copy: 'Most practices accept denials without ever appealing them.', status: 'approved', updatedAt: '2026-08-17T00:00:00.000Z' }),
+      post({ copy: 'Most practices accept denials as the cost of doing business.', status: 'approved', updatedAt: '2026-08-16T00:00:00.000Z' }),
+      post({ copy: 'Your front desk answers the same three questions all day.', status: 'approved', updatedAt: '2026-08-15T00:00:00.000Z' }),
+    ],
+    { maxApproved: 3 },
+  )
+  assert.equal(c.approved.length, 2, 'the second "Most practices accept" post must be dropped')
+  assert.ok(c.approved.some((x) => x.startsWith('Your front desk')))
+})
+
+test('falls back to flagged posts rather than returning an empty corpus', () => {
+  const c = buildCorpus(
+    [
+      post({ copy: 'One thing — then another — then a third.', status: 'approved', updatedAt: '2026-08-17T00:00:00.000Z' }),
+      post({ copy: 'A single tic — right here.', status: 'approved', updatedAt: '2026-08-16T00:00:00.000Z' }),
+    ],
+    { maxApproved: 2 },
+  )
+  assert.equal(c.approved.length, 2, 'a brand with no clean history must still generate')
+  assert.equal(c.approved[0], 'A single tic — right here.', 'fewest flags first')
+})
