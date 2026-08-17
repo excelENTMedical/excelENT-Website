@@ -103,3 +103,12 @@ test('only the opening sentence can be a formula opener', () => {
 test('flags weasel attribution', () => {
   assert.ok(rules('Studies show that denial rates keep climbing.').includes('weaselAttribution'))
 })
+
+test('a colon introducing a comma-separated inline list is not a colonReveal', () => {
+  const copy = 'The drivers of denials are usually preventable with proper processes and analytics: procedure-level coding errors, payer-pattern blind spots, and generalist billers who don\'t know ENT coding specifics.'
+  assert.ok(!rules(copy).includes('colonReveal'))
+})
+
+test('a colon reveal with exactly one comma is still flagged', () => {
+  assert.ok(rules('The best part: it learns your payer mix, fast.').includes('colonReveal'))
+})

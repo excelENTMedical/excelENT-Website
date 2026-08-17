@@ -169,7 +169,17 @@ export function detectSlop(copy: string, opts: DetectSlopOpts = {}): SlopResult 
   }
 
   const colon = text.match(COLON_REVEAL)
-  if (colon) flags.push({ rule: 'colonReveal', excerpt: colon[0].trim() })
+  if (colon) {
+    // Check if the continuation (text after colon) is a comma-separated enumeration.
+    // Two or more commas signals a list, not a dramatic reveal.
+    const matched = colon[0]
+    const colonIdx = matched.indexOf(':')
+    const continuation = matched.substring(colonIdx + 1)
+    const commaCount = (continuation.match(/,/g) || []).length
+    if (commaCount < 2) {
+      flags.push({ rule: 'colonReveal', excerpt: matched.trim() })
+    }
+  }
 
   for (const re of NOT_Y_BUT_X) {
     const m = text.match(re)
