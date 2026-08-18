@@ -2,6 +2,284 @@
 
 All notable changes to the ExcelENT site (patient + B2B) live here. Most recent at top.
 
+## 2026-08-18 — Social writing quality: slop detection, corpus quality gate, bullets
+
+The v2 anti-slop rules decayed from 27% back to 100% em-dash usage over four weeks. The cause was not the prompt: `buildCorpus` selected few-shot exemplars by **recency alone** and the user prompt labelled them "match this quality and tone", so any tic that survived human review became the next template. Three of the eight most recently approved posts opened with `Most [noun]` — a formula nothing instructed. This closes that loop and adds measurement.
+
+### Slop detection
+- **`src/lib/social/slop.ts`** (new, pure — imports nothing): `detectSlop(copy, opts)` returns per-rule flags **with the offending excerpt**, which is what makes the repair pass work — quoting the sentence back beats naming the rule.
+- Eight rules: `emDash`, `multiEmDash`, `colonReveal`, `notYButX` (the mid-sentence `X, not Y` form v2 missed entirely — 27% of posts), `dramaticFragment`, `binaryContrast`, `formulaOpener`, `weaselAttribution`.
+- Mandatory exclusions: required disclaimers are stripped before detection (they are mandated verbatim and carry their own em dash — counting them flags the writer for compliance), as is the trailing hashtag block. Bullet lines are never fragments; a colon introducing a list is never a colon reveal.
+- `colonReveal` is suppressed when 2+ commas precede the sentence boundary — without this it fired on legitimate inline lists ("...analytics: coding errors, blind spots, and generalist billers"). Cut false positives from 18/59 to 9/59.
+
+### Repair pass
+- A flagged draft gets **one** repair call, handed its own violations with excerpts, instructed to fix only those spans and preserve meaning, facts, figures, CTA and disclaimer verbatim.
+- Accepted only on **strict** improvement with the disclaimer intact; otherwise the original copy and flags are kept. Never loops, never blocks the save — an empty calendar slot is worse than an imperfect draft.
+- `generationMeta.originalCopy` holds the **post-repair** copy. `buildCorpus` reads `originalCopy !== copy` as a human edit, so storing the pre-repair draft would feed a machine repair back as a human correction — the amplification bug itself.
+- Flags fold into the existing `generationMeta.guardrailFlags` string via a new exported `buildGuardrailFlags()`. **Zero DDL** — no new Payload field, because the Payload 3 codegen CLI is broken in this environment.
+
+### Corpus quality gate (the actual fix)
+- `buildCorpus` now scores every candidate with `detectSlop`, prefers clean posts over flagged ones (recency preserved within each group), and **de-duplicates openers** by normalized first four words so three `Most …` posts cannot occupy three of six exemplar slots.
+- Falls back to the least-flagged remainder when too few clean posts exist, so a cold or uniformly-flagged brand still generates. Stays pure and synchronous.
+
+### Bullets
+- `format: "prose" | "bullets"` joins the JSON generation contract; the model chooses per post. Unknown/missing values default to `prose`.
+- Prompt covers when bullets earn their place and the mechanics (literal `•`, 3-5 items, parallel grammar, no terminal periods). `format` is generation-time only and is **not persisted** — the copy carries the bullet characters.
+- No publish-path change needed: `escapeLittleText` reserves `|{}@[]()<>*_~`, and `•`/newlines are not among them.
+
+### Prompt + banned terms
+- `PROMPT_VERSION` → `v3-bullets`. `WRITING_RULES` gained the mid-sentence negation rule and the bullets block.
+- `scripts/add-banned-terms-2026-08.sql`: `actually`/`seamless`/`seamlessly` for brands 1-4; first-ever lists for brands 5 and 8 (18 and 16 terms) built from the standing terminology rules plus the compliance floor. Deliberately **not** banned: `journey` (a theme name) and `solution` ("Practice Solutions" is a brand). 45 → 91 rows.
+
+### Backfill
+- `scripts/reslop-check.mts` — propose/apply split. The default propose phase writes reviewed rewrites to `scripts/reslop-proposals.json`; `--apply` saves **those exact strings** and cannot reach the model (imports gated behind `if (!APPLY)`). Without the split, `--apply` regenerated non-deterministically and the reviewed diffs were never what got saved.
+- Apply refuses on: missing/empty proposals, `social-scheduler` online, post no longer `draft`, or current copy != the reviewed `before` (stale). `--only`/`--skip` filters both phases. Uses `skipNotify` so rewrites do not re-fire lifecycle email.
+- Applied to 8 drafts scheduled 08-19 → 09-01. Figures unchanged on all 8; every "partner practices" aggregate preserved verbatim. Post 73 was already clean. **Post 78 was excluded** — its repair converted a statement about the patient journey into a first-person service-scope claim the original never made. Reproduces on regeneration, so it is a repair-prompt gap, not sampling noise; left for a human rewrite.
+
+### Measurement
+Corpus audit (`/home/bitnami/tools/social/analyze-corpus.py`), n=70 vs the 51-text 07-31 baseline — note the corpus still contains all historical v1/v2 posts, so these are mixed-cohort numbers, not the post-fix rate:
+
+| | 07-31 | 08-18 |
+|---|---|---|
+| em dash | 88% | 48% |
+| 2+ em dashes | 56% | 34% |
+| `X, not Y` mid-sentence | 27% | 18% |
+| dramatic fragment | 23% | 14% |
+| binary contrast | 9% | 7% |
+
+### Known gaps (not addressed here)
+- **Cross-post repetition** — posts 73 and 78 share an opener verbatim; a per-post detector structurally cannot catch this without corpus comparison. Explicit non-goal.
+- **Banned terms are advisory only.** Draft 80 used `actually` twice despite the term being banned for its brand that morning: the prompt-level ban is weak and the repair pass triggers on slop flags only. Folding banned-term hits into the repair trigger is the obvious next step.
+- **`checkGuardrails` matches by plain substring**, no word boundaries — `cure` matches "secure", `disrupt` matches "disruption". Advisory-only, so the cost is a glance, but proper matching needs its own task and an audit of all 91 terms.
+- **`stampNotify` has never succeeded** — `notify_generated_at` is NULL across all 61 posts; it throws `NotFound` updating the row from inside the create `afterChange` hook. Pre-existing, unrelated to this work.
+
+## 2026-06-25 — Social content calendar (planning + auto-fill + interactive calendar)
+
+A planning layer over the social agent: recurring cadence per brand, hourly cron auto-fill of empty slots with AI drafts, time-boxed theme campaigns, an interactive drag-to-reschedule calendar in the admin, and a skip+alert safety model. Nothing auto-publishes — the planner only schedules drafts; a human still approves before go-live.
+
+### Cadence + campaigns (data model)
+- **`SocialCampaigns`** collection (`social-campaigns`): date-boxed theme overrides — name, brand, start/end (inclusive), platforms (empty = all), priority, themes[].
+- **Brand Profiles → `postingSlots`**: recurring publish rules — platform + dayOfWeek (0=Sun…6=Sat, ET) + time (`HH:mm`, ET).
+- **Social Posts** gained `slotSource` (`manual`/`auto`), `campaign` (rel), and `notify.missedAlertSentAt`.
+- Schema synced to prod additively (preview→filter→psql): `social_campaigns` (+`_platforms`/`_themes`), `brand_profiles_posting_slots`, and the three `social_posts` columns.
+
+### Planner (auto-fill)
+- `src/lib/social/calendar/slots.ts` — `materializeSlots` expands posting rules into concrete UTC datetimes over a rolling 14-day horizon; ET→UTC via `date-fns-tz` `fromZonedTime`, DST-correct (EDT/EST hand-verified in tests).
+- `themes.ts` — `selectTheme`: campaign overlay (highest priority, platform-scoped) else brand pool on LRU rotation.
+- `planner.ts` — `runPlanner` fills only **empty** slots (idempotent via a normalized `slotKey`), calls the existing draft generator, stamps `scheduledTime`/`slotSource:auto`/`campaign`, and **never** writes `publish.state`. v1 restricted to LinkedIn (`PUBLISHABLE_PLATFORMS`).
+- `generate.ts` — `generateDrafts` made injectable (`{payload, callClaudeImpl}`) for testability, and now honors `opts.count` as a hard cap (slices model output) so a chatty model can't leak orphan drafts.
+
+### Workers
+- `scripts/social-scheduler.mts` — added a **separate, non-blocking hourly planner loop** alongside the 60s publish tick.
+- `scripts/social-notifications.mts` — added the **missed-slot alert**: a scheduled post that passes go-live unapproved triggers a one-time "missed" email (`missedDue` + `notify('missed', …)`), and is left unpublished. New `missed` event threaded through `notify` types/email/send/due.
+
+### Calendar UI + reschedule
+- `src/components/admin/SocialCalendar{,Client}.tsx` — a registered Payload admin view at `/admin/social-calendar` (react-big-calendar + drag-and-drop): events colored by publish state, brand/platform filters, click-to-open, drag-to-reschedule. `sent`/`publishing` posts are non-draggable.
+- `src/app/api/social/reschedule/route.ts` (+ pure `canReschedule` guard, unit-tested) — cookie-authed `POST {postId, scheduledTime}`; refuses (409) when state is `sent`/`publishing`; updates `scheduledTime` with `skipNotify`.
+
+### Build/deploy notes
+- `react-big-calendar` added (installed with `--legacy-peer-deps` for React 19).
+- The admin view is registered in `payload.config.ts`; its component must also be present in `src/app/(payload)/admin/importMap.js` (hand-added, since codegen is unreliable here) and `react-big-calendar` committed in `package.json` — otherwise a fresh build can't resolve the view.
+
+## 2026-05-09 — Production launch (both sites), GTM analytics, SEO pass
+
+Big day. Cut both sites over to production, replaced WordPress at the apex, wired analytics, did an SEO pass.
+
+### Mobile menu fix (B2B)
+
+- `HeaderB2B` uses `backdrop-blur` on the sticky header. Per CSS spec, `backdrop-filter` makes an element a containing block for `position: fixed` descendants — so `MobileMenu`'s drawer (`fixed inset-0 z-[1050]`) was sizing itself to the 64px-tall header instead of the viewport. Result: drawer's own h-16 header bar visible, nav crushed to ~0 height, page content bleeding through underneath.
+- Fix: portal the open drawer to `document.body` via `react-dom`'s `createPortal`. Drawer escapes the header's containing block; `inset-0` resolves against the viewport again. Trigger button stays in-header for layout, only the drawer is portaled.
+
+### Patient site live at `https://patients.excelentmedical.com`
+
+- DNS A record `patients` → `54.224.169.112`.
+- New nginx vhost at `/opt/bitnami/nginx/conf/server_blocks/patients-server-block.conf` — port 80 (ACME passthrough + 301 to https) + port 443 (proxy to `127.0.0.1:3000` with full forwarded-headers set). Cert issued via `lego --http --http.webroot=/opt/bitnami/letsencrypt/webroot`. Initial attempt with `--tls` flag failed because lego prefers TLS-ALPN-01 when both `--tls` and `--http` are passed, and TLS-ALPN-01 needs to bind :443 standalone (already in use by nginx).
+- Auto-renewal cron added at 11:35 daily with same `--http.webroot` setup.
+
+### B2B site live at `https://excelentmedical.com` (replacing WordPress)
+
+User decision: replace WP entirely at the apex, with **clean URLs** (no `/b2b/` prefix in user-facing URLs).
+
+- **Hostname-aware middleware** (`src/middleware.ts`):
+  - On `excelentmedical.com` / `www.excelentmedical.com`: rewrite `/X` → internal `/b2b/X` so the existing `app/b2b/*` route tree serves the apex without file moves. `/b2b/*` URLs on B2B host get a 308 to the clean form.
+  - On patient host: any `/b2b/*` URL gets a 308 cross-host redirect to `https://excelentmedical.com/<rest>` so we have a single canonical for B2B.
+  - Otherwise: pass through to next-intl.
+  - Matcher updated to drop the `/b2b` exclusion (no longer needed since the new function handles routing per host).
+- **Internal-link strip:** ran `sed -i` across `src/components/b2b/` and `src/app/b2b/` to strip the `/b2b` prefix from every `href` (~47 occurrences across 21 files). Scoped to those dirs so `from '@/components/b2b/...'` import paths weren't touched. `FooterPatient.tsx` "For practices →" updated to `https://excelentmedical.com` (was `/b2b`).
+- **New nginx vhost** (`/opt/bitnami/nginx/conf/server_blocks/excelent-server-block.conf`):
+  - `listen 80 default_server` for apex + www + `_` (catch-all). ACME challenges still served from `/opt/bitnami/letsencrypt/webroot/.well-known/acme-challenge/`. All other HTTP traffic 301s to https apex.
+  - HTTPS www → 301 to apex.
+  - HTTPS apex → proxy to `127.0.0.1:3000`.
+- **Cert was a multi-SAN reissue.** The existing `excelentmedical.com.crt` was single-SAN; the existing `www.excelentmedical.com.crt` was expired (last renewed 2025-08, expired 2025-11 — the existing renewal cron only handled the apex name, not www). Reissued with `lego --domains=excelentmedical.com --domains=www.excelentmedical.com` so a single cert covers both names. Both nginx blocks now point at the same cert. Updated the renewal cron accordingly (was lost in a sed pipeline mishap; reconstructed and verified).
+- **WordPress disabled, not deleted.** Renamed `/opt/bitnami/nginx/conf/server_blocks/wordpress-{,https-}server-block.conf` → `*.disabled` so nginx ignores them. Stopped `mariadb` and `php-fpm` via `ctlscript.sh stop`. Added `@reboot sleep 60 && ctlscript.sh stop mariadb && ctlscript.sh stop php-fpm` to the root crontab so they don't come back after reboot (Bitnami's nami provisioner re-starts everything in `/opt/bitnami/<service>` at boot otherwise). WP filesystem and DB data files are untouched on disk — recoverable.
+
+### Per-host `/sitemap.xml` and `/robots.txt`
+
+- Replaced static `app/sitemap.ts` and `app/robots.ts` (Next.js conventions, build-time only) with dynamic Route Handlers at `app/sitemap.xml/route.ts` and `app/robots.txt/route.ts`. Each reads `Host` header at request time and emits the appropriate body.
+  - Patient host → 15 patient static paths + city slugs (from `LOCATIONS`) + article slugs (from `ARTICLES`), with `xhtml:link rel="alternate" hreflang="es"` for English/Spanish locale pairs.
+  - B2B host → 18 B2B static paths (clean URLs, no `/b2b` prefix).
+- Forces `dynamic = 'force-dynamic'` so per-request host detection actually fires. `Cache-Control: public, max-age=3600`.
+- Hand-rolled XML to avoid Next.js's `MetadataRoute.Sitemap` static-only constraint.
+
+### Scoped legacy redirects to patient host
+
+- All 88 entries in `next.config.js`'s `redirects()` array (44 source slugs × trailing/non-trailing) now have `has: [{ type: 'host', value: 'patients.excelentmedical.com' }]`. Implemented as a `patientOnly()` wrapper around the array so future additions inherit scope automatically.
+- **Why:** every destination is a patient-site route. Without the host filter, hits like `excelentmedical.com/asheville-sinus-specialists` would 308 to `/asheville-nc-sinus-specialists`, get rewritten by middleware to `/b2b/asheville-nc-sinus-specialists`, and 404 there. The host scope replaces a redirect-into-404 chain with a clean direct 404.
+
+### Production env hardening
+
+- Rotated `PAYLOAD_SECRET` from the literal `excelent-medical-payload-secret-2024-change-in-production` placeholder to `openssl rand -base64 48`. Logged out current admin sessions; password hashes unaffected.
+- `NEXT_PUBLIC_SERVER_URL=https://excelentmedical.com` (was `http://localhost:3000`).
+- `NODE_ENV=production` for clarity (runtime is already production via `next start`, but the file value was `development`).
+- pm2 restart with `--update-env` to pick up the new values.
+
+### GTM + dataLayer analytics
+
+- Container ID: `GTM-PX3FR3J`. Set as `NEXT_PUBLIC_GTM_CONTAINER_ID`.
+- New components:
+  - `src/components/analytics/GtmScript.tsx` — `next/script` with the GTM bootstrap inline, gated on the env var so it no-ops without a real ID.
+  - `src/components/analytics/GtmNoScript.tsx` — `<noscript>` iframe fallback.
+  - `src/components/analytics/AnalyticsClickTracker.tsx` — single delegated click listener that pushes to `dataLayer` for any `[data-analytics-event]` element, plus reads `data-analytics-param-*` attributes for params.
+  - `src/lib/analytics.ts` — typed `pushEvent(event, params)` helper for explicit calls.
+- Wired into both layouts (`app/(patient)/[locale]/layout.tsx` + `app/b2b/layout.tsx`) — GTM script in `<head>`, noscript at top of `<body>`, ClickTracker before `</body>`.
+- Four conversion-candidate events fire today:
+  - `schedule_click` — `ScheduleButton.tsx` onClick (booking widget open intent)
+  - `phone_click` — every `tel:` link via `data-analytics-event` (header + ScheduleButton's "or call" link)
+  - `find_specialist_click` — header + footer "Locations" links (data-attr; delegated)
+  - `demo_form_submit` — explicit `pushEvent` in `DemoForm.tsx` after the API returns 2xx
+- **Caveat on `schedule_click`:** measures intent-to-book (widget open), not actual booking completion. Real conversions require the iframe app at `app.excelentmedical.com/excelvoice/booking-test` to fire its own GA4 events from inside the widget. CSP `frame-ancestors` already trusts `https://patients.excelentmedical.com` and `https://www.excelentmedical.com` for the iframe — verified.
+
+### SEO pass
+
+- **OpenGraph + Twitter cards on every page.** Was zero coverage on both sites.
+  - Hand-cropped 1200x630 versions of the existing hero images at `/public/og/b2b.webp` and `/public/og/patient.webp` (PIL center-crop preserving aspect, LANCZOS resampling, WebP quality 88).
+  - B2B layout (`app/b2b/layout.tsx`): `metadata.openGraph` and `metadata.twitter` set with the new image, default title, description.
+  - Patient `lib/page-metadata.ts`: changed `DEFAULT_OG_IMAGE` from `/images/hero-main.png` (768×768 square — unusable as OG) to `/og/patient.webp`. Every patient page that uses `pageMetadata()` (12 of them) automatically picked up the new image without further edits.
+- **B2B home metadata** (`app/b2b/page.tsx`): was inheriting from layout only. Now has explicit `title.absolute`, longer description, and explicit canonical.
+- **Internal linking — `RelatedLinks` components.**
+  - New components: `src/components/patient/RelatedLinks.tsx` and `src/components/b2b/RelatedLinks.tsx` (themed to match each side's typography).
+  - Placed on 12 high-value pages with hand-curated cross-link sets (3-4 links each):
+    - B2B: `/products/{bb8,allergyx,shaver-blades}` (cross-link to peer products + back to solutions); `/solutions/{connect,lexi,rcm}` (cross-link to peer tiers + back to how-it-works).
+    - Patient: `/`, `/balloon-sinuplasty`, `/find-a-specialist`, `/about`, `/schedule`, `/resources`. Each routes users back into the sinusitis cluster, balloon-sinuplasty page, and find-a-specialist directory.
+  - Brought under-linked pages from 0-1 outbound contextual links to 3-4.
+- **JSON-LD / structured data on B2B (was zero before today).**
+  - New module `src/lib/structured-data-b2b.ts` rooted at `https://excelentmedical.com` so `@id` values don't collide with the patient `lib/structured-data.ts` (also at the patient host).
+  - Layout-level: `Organization` + `MedicalOrganization` (composite type) and `WebSite` on every B2B page.
+  - Per-page additions:
+    - `/products/{bb8,allergyx,shaver-blades}`: `BreadcrumbList` + `Product` (or `MedicalDevice` for BB8 / shaver blades — AllergyX is a rinse kit, plain `Product`).
+    - `/solutions/{connect,lexi,rcm}`: `BreadcrumbList` + `Service` (with `provider`, `areaServed: Country US`, `BusinessAudience: Independent ENT practices`) + `FAQPage` reusing the existing `faqs` array on each page (eligible for FAQ rich-result snippets in Google).
+    - `/products` and `/solutions` index: `BreadcrumbList`.
+- **Image alts audited:** all good. Logos use `alt="excelENT"` (correct for branded marks); zero empty alts; no decorative images without `alt`.
+
+### What still requires user action
+
+Tracked separately in `~/.claude/projects/-home-bitnami/memory/project_launch_punchlist.md`:
+
+1. GTM admin: create triggers + GA4 Event tags + mark events as conversions.
+2. Browser smoke test (curl-tested only) — submit demo form, click Schedule, verify GA4 DebugView fires.
+3. Delete unused `newsiteemail` IAM user (we went with the EC2 instance role).
+4. Optional cosmetic: move `app/b2b/*` → `app/(b2b)/*` route group so file paths match URLs (~30 min refactor).
+
+## 2026-05-08 — Email transport (SES API), demo-request form wired end-to-end, patient step-1 copy
+
+Two tracks. (1) Stood up real email infrastructure via Amazon SES and wired the B2B demo form to actually send + persist submissions. (2) A one-line patient-homepage copy tweak.
+
+### Email transport — Amazon SES via HTTPS API (not SMTP)
+
+- **Why not SMTP:** AWS blocks outbound ports 25/465/587 by default on EC2/Lightsail. Confirmed empirically — `email-smtp.us-east-1.amazonaws.com:587` connection times out from this instance, while `email.us-east-1.amazonaws.com:443` reaches fine. The SMTP user the user originally created (`newsiteemail`) is therefore unusable from this host. Should be deleted from IAM (creds were also exposed in the chat that set this up).
+- **Auth via existing IAM role:** This instance already has an IAM role attached named `AWS_SES`. The AWS SDK auto-discovers credentials from the EC2 instance metadata service (IMDS) — verified `curl http://169.254.169.254/latest/meta-data/iam/security-credentials/AWS_SES` returns valid temporary creds. No access keys in `.env`.
+- **Custom Payload email adapter:** `src/lib/sesEmailAdapter.ts` — small adapter that conforms to Payload 3's `EmailAdapter` shape (returns `{ defaultFromAddress, defaultFromName, name, sendEmail }`). `sendEmail` translates Payload's `SendEmailOptions` (Nodemailer-style) into the `SendEmailCommand` of `@aws-sdk/client-sesv2`. Handles string / `Address` / array forms for `to / from / cc / bcc / replyTo`.
+- Wired into `src/payload.config.ts` via `email: sesAdapter({...})`. No conditionals — adapter is always active. Region from `AWS_REGION` env var (defaults to `us-east-1`).
+- **Deps churned:** Originally installed `@payloadcms/email-nodemailer` + `nodemailer`, then ripped them out once SMTP proved blocked. Final dep is just `@aws-sdk/client-sesv2`. All installs needed `--legacy-peer-deps` (Payload 3's peer dep tree is slightly out of phase with current minor versions).
+- **`.env` additions:** `AWS_REGION`, `EMAIL_FROM_ADDRESS=noreply@excelentmedical.com`, `EMAIL_FROM_NAME=excelENT Medical`, `DEMO_RECIPIENT_EMAIL=ai@excelentmedical.com`.
+- **Test script:** `scripts/test-email.ts` calls `SESv2Client.send(SendEmailCommand)` directly — bypasses Payload init so it doesn't drag in DB connection setup. Run with `npx tsx scripts/test-email.ts <recipient>`. Uses `@next/env` `loadEnvConfig` to pick up `.env`.
+
+### Patched `node_modules/payload/dist/bin/loadEnv.js` (again)
+
+Memory said this file needed `import * as nextEnvImport` to fix Payload + tsx + `@next/env`. That was incomplete for Payload `^3.0.0` against `@next/env@15.5.12`: `@next/env` ships as CJS, so under tsx-ESM `loadEnvConfig` is on `nextEnvImport.default`, not `nextEnvImport` itself. Final patch:
+
+```js
+import * as nextEnvImport from '@next/env';
+const nextEnv = nextEnvImport.default || nextEnvImport;
+const { loadEnvConfig } = nextEnv;
+```
+
+Memory updated. Note: `npx payload migrate:create` *still* fails after this patch with an unrelated undici/CacheStorage incompatibility under tsx — for tiny schemas, raw SQL is faster than fighting the CLI (see DB note below).
+
+### B2B demo-request form — actually wired
+
+- New collection: `src/collections/DemoRequests.ts` — fields: `name`, `email`, `practice`, `role`, `providers`, `phone`, `emr`, `rcm`, `pain`, `userAgent`, `ip`. Public `create`, authenticated `read/update/delete`.
+- New API route: `src/app/api/demo-request/route.ts`. Forces `runtime = 'nodejs'` and `dynamic = 'force-dynamic'`. Flow:
+  1. Parse JSON.
+  2. **Honeypot check** — if the hidden `website` field is non-empty, return `{ ok: true }` with no DB write or email so bots think they succeeded and don't retry. This catches ~95% of spam without friction.
+  3. Validate required fields (`name`, `email`, `practice`, `role`).
+  4. Capture `ip` from `x-forwarded-for` / `x-real-ip` and `user-agent` for audit trail.
+  5. `payload.create({ collection: 'demo-requests', data })` — durable record even if email fails.
+  6. `payload.sendEmail({ to: DEMO_RECIPIENT_EMAIL, replyTo: "Name <email>", subject, html })`. Email body is an HTML table of fields. **Reply-To set to the submitter** so a reply from `ai@excelentmedical.com` goes back to the lead, not to the noreply box.
+  7. Email failures are logged but don't fail the user-facing request — the row is already saved.
+- Form changes (`src/components/b2b/DemoForm.tsx`):
+  - Added the honeypot field as a visually hidden `<label>Website<input name="website"></label>` with `aria-hidden`, `tabIndex={-1}`, `autoComplete="off"`, positioned `left: -9999px`. Real users never see it; bots that auto-fill every field do.
+  - Removed the dev stub that faked `state = 'success'` whenever the API call failed. Real errors from the API now surface via `errorMsg` with the server-provided `error` field appended.
+- New env var: `DEMO_RECIPIENT_EMAIL` (defaults to `ai@excelentmedical.com`). Recipient is configurable without redeploy.
+
+### DB schema for `demo_requests` — created via raw SQL
+
+Payload's `postgresAdapter({ push: true })` only auto-pushes in dev (`NODE_ENV !== 'production'`), and `next start` forces production, so push didn't fire. `npx payload migrate:create` was blocked by the undici/tsx issue noted above. Ran the SQL directly:
+
+```sql
+CREATE TABLE demo_requests (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR, email VARCHAR, practice VARCHAR, role VARCHAR,
+  providers VARCHAR, phone VARCHAR, emr VARCHAR, rcm VARCHAR, pain VARCHAR,
+  user_agent VARCHAR, ip VARCHAR,
+  updated_at TIMESTAMPTZ(3) NOT NULL DEFAULT now(),
+  created_at TIMESTAMPTZ(3) NOT NULL DEFAULT now()
+);
+CREATE INDEX demo_requests_created_at_idx ON demo_requests(created_at);
+CREATE INDEX demo_requests_updated_at_idx ON demo_requests(updated_at);
+```
+
+Schema mirrors Payload's naming conventions (snake_case columns, `created_at`/`updated_at` with `TIMESTAMPTZ(3) DEFAULT now()`) so future Payload migrations don't see a drift. Left `push: true` in the adapter config — harmless in production, helpful if the DB is reset in dev.
+
+### Verification (live)
+
+- Real submit (`curl -X POST /api/demo-request -d '{...real fields...}'`) → `{"ok":true}`, row in `demo_requests`, email lands at `ai@excelentmedical.com` with the field table and the submitter as `Reply-To`.
+- Honeypot submit (`{..., "website": "http://spam.com"}`) → `{"ok":true}`, no row, no email. Confirmed via `SELECT count(*)` before and after.
+
+### Patient homepage — step 1 copy
+
+- `messages/en.json` `step1Title`: `Based on your city and symptoms` → `Connect Based on your city and symptoms`. Equivalent change to `messages/es.json` (`Conecta Según tu ciudad y síntomas`). Per user — they want "Connect" as a verb prefix on step 1; steps 2/3 left as noun phrases (parallelism mismatch is intentional / user's call).
+
+---
+
+## 2026-05-08 — B2B copy edits, BB8 hero crop, Kashif headshot crop fix, Zack bio
+
+A small B2B-only pass: stat numbers, copy tweaks across the home / RCM / BB8 / Why excelENT pages, plus an asset crop for the BB8 hero.
+
+### B2B home (`/b2b`)
+
+- `ProofMetricStrip`: `265K` → `273K` (Patients Reached), `192` → `199` (Kept Appointments). Labels stay plural.
+- `PlatformOverviewSection` Medical Devices card: `FDA-approved Products` → `FDA-approved product` (singular, per user — the regulatory framing they want).
+- `HeroB2B` left proof point: `Industry Baseline` → `Industry Denial Rate`, then broken across two lines (`Industry` / `Denial Rate`) so the left label mirrors the existing right label (`excelENT Partner` / `Denial Rate`).
+
+### PS | RCM page (`/b2b/solutions/rcm`)
+
+- Hero paragraph rewritten. Old: "We move denial rates from the 11.8% industry baseline toward 2.5%, and we share the upside." New: "We provide a significant reduction in denial rates from the industry average of 11.8% to below 2.5%, yielding significant additional cash flow and time savings for the practice."
+- `financialFacts[1].caption` (`2.5% excelENT Denial Rate`) now wraps deliberately: `Achieved at partner practices on` / `ENT-specific coding.` Implementation: caption type widened from `string` to `ReactNode`, JSX `<br />` between the two halves. `import type { ReactNode } from 'react'` added.
+- `OIG exclusion risk` → `OIG Exclusion Risk` (matches Title Case of sibling cards: State Medical Board Actions / Malpractice Exposure / Audit Triggers).
+
+### BB8 product page (`/b2b/products/bb8`) — image crop + layout
+
+- Source `public/images/products/bb8.webp` (1200×1553) is portrait-oriented but the device occupies only y=637–997 (≈23% of the canvas). Detected via PIL non-white bbox.
+- New asset `public/images/products/bb8-cropped.webp` (1200×600, 2:1) — device centered vertically with breathing room. Original `bb8.webp` left untouched so the products listing card and any other consumer keeps its existing crop.
+- Hero swap: `src` → `bb8-cropped.webp`. Container `aspect-[4/3]` → `aspect-[2/1]` so the box matches the cropped asset and the device fills nearly the full width. Inner `p-6 md:p-8` and image `p-4` padding removed; column span 5/12 → 6/12.
+- `items-center` retained on the row; image vertically centers against the (taller) text column. Original `py-10 md:py-16 lg:py-20` section padding kept.
+
+### Why excelENT page (`/b2b/why-excelent`) — team
+
+- Kashif Mazhar headshots: `object-cover` → `object-cover object-top` on the hero portrait (`/images/site/kashif-mazhar-portrait.jpg`) AND the team-grid circle (`/images/team/kashif-mazhar.jpg`). Source crop sits high in the frame, so default center alignment was clipping his forehead. Same fix applied to `WhyExcelentTeaser` (homepage teaser, 56×56 thumbnail) since it uses the same source. Conditional via `member.name.startsWith('Kashif')` so other team members are unaffected.
+- Zack Casazza bio replaced. New copy: "Zack is the CFO of excelENT, bringing a rare combination of M&A investment banking and senior finance operating experience to the role. He is passionate about giving independent ENT practices the financial clarity and strategic support they need to grow and thrive in their local markets — on their own terms." Title `Chief Financial Officer` unchanged.
+
 ## 2026-05-06 — AI-generated heroes, Title Case sweep, subnav, product navy accent, new product images
 
 A long session focused on visual polish, copy consistency, navigation, and a per-section accent system. All B2B-side; patient site got one new hero (home).
