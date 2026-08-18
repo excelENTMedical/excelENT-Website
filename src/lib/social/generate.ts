@@ -3,16 +3,18 @@ import { buildCorpus } from './corpus'
 import { buildSystemPrompt, buildUserPrompt, PROMPT_VERSION } from './prompt'
 import { checkGuardrails, norm } from './guardrails'
 import { callClaude } from './claude'
-import type { BrandConfigForPrompt, CorpusPost, GenerateOptions, GraphicFields, GraphicStyle } from './types'
+import type { BrandConfigForPrompt, CorpusPost, GenerateOptions, GraphicFields, GraphicStyle, PostFormat } from './types'
 
 interface ParsedDraft {
   copy: string
   cta?: string
+  format: PostFormat
   graphicStyle: GraphicStyle
   graphic: GraphicFields
 }
 
 export const GRAPHIC_STYLES: GraphicStyle[] = ['none', 'hook', 'stat', 'dataviz']
+export const POST_FORMATS: PostFormat[] = ['prose', 'bullets']
 export const GRAPHIC_KEYS: (keyof GraphicFields)[] = ['headline', 'subtext', 'statFrom', 'statTo', 'statLabel', 'caption']
 
 /** Tolerate stray prose or ```json fences around the JSON array. */
@@ -49,12 +51,14 @@ export function parseDrafts(text: string): ParsedDraft[] {
       Boolean(d) && typeof (d as { copy?: unknown }).copy === 'string')
     .map((d) => {
       const rawStyle = String((d as any).graphicStyle || '')
+      const rawFormat = String((d as any).format || '')
       const g = ((d as any).graphic || {}) as Record<string, unknown>
       const graphic: GraphicFields = {}
       for (const k of GRAPHIC_KEYS) if (g[k] != null && g[k] !== '') graphic[k] = String(g[k]).trim()
       return {
         copy: String((d as any).copy).trim(),
         cta: (d as any).cta ? String((d as any).cta).trim() : undefined,
+        format: (POST_FORMATS.includes(rawFormat as PostFormat) ? rawFormat : 'prose') as PostFormat,
         graphicStyle: (GRAPHIC_STYLES.includes(rawStyle as GraphicStyle) ? rawStyle : 'hook') as GraphicStyle,
         graphic,
       }
@@ -62,6 +66,19 @@ export function parseDrafts(text: string): ParsedDraft[] {
 }
 
 /** Map a brand-profiles doc to the prompt config. Shared by generate + revise. */
+/**
+ * Build the label a post shows in the admin list, which doubles as the posting calendar.
+ *
+ * Leads with the theme because the schedule is a weekday pillar rotation — scanning a week you
+ * want to see which pillar ran, not the brand (its own column) or the platform (all LinkedIn).
+ * Whitespace is collapsed because copy contains paragraph breaks, and a title with newlines
+ * wraps the row and knocks the date column out of alignment.
+ */
+export function buildPostTitle(theme: string, copy: string, max = 60): string {
+  const excerpt = [...copy.replace(/\s+/g, ' ').trim()].slice(0, max).join('').trim()
+  return theme ? `${theme} — ${excerpt}` : excerpt
+}
+
 export function buildBrandConfig(brand: Record<string, any>): BrandConfigForPrompt {
   const b = brand
   return {
@@ -140,7 +157,7 @@ export async function generateDrafts(
       collection: 'social-posts',
       context: createContext,
       data: {
-        title: `[${brandConfig.name} · ${opts.platform}] ${[...d.copy].slice(0, 50).join('')}`,
+        title: buildPostTitle(opts.theme, d.copy),
         brand: Number(brandId),
         platform: opts.platform,
         language: opts.language,

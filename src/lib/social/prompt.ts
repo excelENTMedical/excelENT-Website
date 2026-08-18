@@ -1,6 +1,77 @@
 import type { BrandConfigForPrompt, FewShotCorpus, GenerateOptions, Platform } from './types'
 
-export const PROMPT_VERSION = 'v1'
+// Bumped when the instructions change in a way that should show up in the copy. Stored on
+// every post as generationMeta.promptVersion, so you can tell which rules a draft was
+// written under. v2 added the anti-slop writing rules below. v3 added bullets and the mid-sentence negation contrast rule.
+export const PROMPT_VERSION = 'v3-bullets'
+
+/**
+ * Writing rules distilled from the `no-ai-slop` skill (github.com/petergyang/no-ai-slop,
+ * MIT), adapted for short social copy.
+ *
+ * These sit in the SYSTEM prompt because they govern how everything is written, not what
+ * any single post is about. Each rule carries a concrete example: a model follows "don't
+ * write 'That's not a marketing problem. That's a patient journey problem.'" far more
+ * reliably than it follows "avoid binary contrasts".
+ */
+const WRITING_RULES = `
+WRITING RULES — these decide whether a draft reads human or generic. Follow them all.
+
+Never use these words: delve, foster, leverage, utilize, facilitate, empower, streamline,
+robust, cutting-edge, paradigm shift, game changer, transformative, elevate, embark,
+supercharge, harness, ever-evolving, tapestry, realm, beacon, multifaceted, meticulous,
+intricate, paramount.
+
+Never open with filler: "it's worth noting", "it's important to note", "at the end of the
+day", "when it comes to", "in today's world", "the reality is", "the truth is".
+
+Avoid these patterns:
+- Binary contrasts. Not "That's not a marketing problem. That's a patient journey problem."
+  State the second half directly.
+- Mid-sentence negation contrasts. Not "a starting point, not the destination" and not
+  "not just billing, but the whole revenue cycle." Say what the thing is and stop. This
+  is the same tic as a binary contrast wearing a comma.
+- Throat-clearing openers. Not "Here's the thing," "Let me be clear," "I'll be honest."
+  Cut them and make the point.
+- Faux-insight setups. Not "Here's what nobody tells you," "What most people get wrong."
+  Make the claim stand on its own.
+- Colon reveals. Not "The best part: it learns." Write it as a plain sentence. Colons are
+  for lists and labels, not drama.
+- Superficial -ing analysis. Not "...adds scheduling, highlighting our commitment to care."
+  Say what it does for the reader instead.
+- Importance puffery. Not "marks a pivotal moment," "stands as a testament," "plays a vital
+  role." State the fact and let the reader judge.
+- Weasel attribution. Not "studies show," "experts agree," "many argue." Name the source or
+  cut the claim. Never invent one.
+- Negative listing and dramatic fragments. Not "Not a vendor. Not a tool. A partner." and
+  not "That's it. That's the whole thing."
+- Fake-profound kickers. Do not end on a metaphor or mic-drop line. End on the clearest
+  concrete sentence or the call to action.
+- Em dashes as a rhythm crutch. In posts this short, use none — commas, periods, or
+  parentheses do the job.
+
+Do this instead:
+- Be concrete. "Cut denial rates from 12% to 4%" beats "improved revenue performance."
+  Never invent a number; use only figures given to you.
+- Use active voice with a human subject. "The front office confirms coverage" beats
+  "coverage gets confirmed."
+- Let verbs work. "decided" beats "made a decision"; "can" beats "has the ability to".
+- Repeat the right word rather than cycling synonyms for variety.
+- Vary sentence shape. Do not stack identical punchy fragments.
+
+BULLETS — set "format" to "bullets" only when the content is genuinely a list: causes,
+steps, features, or items that share a grammatical shape. A company story, a patient
+narrative, or anything with a through-line stays "prose". Most posts are prose.
+
+When you do use bullets:
+- Open with one short paragraph of setup, then the list, then the call to action. Never
+  open a post on a bullet.
+- Start each item with the literal character • — LinkedIn strips markdown, so "-" and "*"
+  render as themselves.
+- Three to five items. Two is a sentence; six is a spreadsheet.
+- Parallel grammar: every item opens with the same part of speech.
+- No terminal periods on fragments.
+- A colon introducing the list is correct. That is the one colon these rules allow.`
 
 const PLATFORM_GUIDE: Record<Platform, string> = {
   linkedin:
@@ -27,9 +98,17 @@ export function buildSystemPrompt(brand: BrandConfigForPrompt): string {
     lines.push('\nEVERY post MUST include this disclaimer text verbatim:')
     brand.requiredDisclaimers.forEach((d) => lines.push(`"${d}"`))
   }
+  lines.push(WRITING_RULES)
   lines.push(
     '\nThis is healthcare marketing. Do not make medical claims, guarantee outcomes, or give individual medical advice.',
   )
+  // Last word, deliberately: the writing rules are style, the brand rules are compliance.
+  // A banned term or a missing disclaimer fails review no matter how well the post reads.
+  if (brand.bannedTerms.length || brand.requiredDisclaimers.length) {
+    lines.push(
+      '\nWhere the writing rules and the brand rules above disagree, the brand rules win: never use a banned term, and always include the required disclaimer verbatim.',
+    )
+  }
   return lines.join('\n')
 }
 
@@ -75,7 +154,8 @@ export function buildUserPrompt(
       '\nUse ONLY numbers and facts already present in the brand voice/themes/approved posts — never invent figures.',
   )
   lines.push(
-    '\nReturn ONLY a JSON array. Each element: {"copy":"<post text>","cta":"<cta>","graphicStyle":"hook|stat|dataviz",' +
+    '\nReturn ONLY a JSON array. Each element: {"copy":"<post text>","cta":"<cta>","format":"prose|bullets",' +
+      '"graphicStyle":"hook|stat|dataviz",' +
       '"graphic":{"headline":"","subtext":"","statFrom":"","statTo":"","statLabel":"","caption":""}}. ' +
       'Include only the graphic keys your chosen style needs. No prose, no markdown code fences.',
   )

@@ -1,20 +1,20 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { parseDrafts, buildBrandConfig, generateDrafts } from './generate'
+import { parseDrafts, buildBrandConfig, generateDrafts, buildPostTitle } from './generate'
 
 test('parses a clean JSON array', () => {
   const out = parseDrafts('[{"copy":"hi","cta":"Book"}]')
-  assert.deepEqual(out, [{ copy: 'hi', cta: 'Book', graphicStyle: 'hook', graphic: {} }])
+  assert.deepEqual(out, [{ copy: 'hi', cta: 'Book', format: 'prose', graphicStyle: 'hook', graphic: {} }])
 })
 
 test('tolerates fences and surrounding prose', () => {
   const out = parseDrafts('Here you go:\n```json\n[{"copy":"a"}]\n```\nThanks!')
-  assert.deepEqual(out, [{ copy: 'a', cta: undefined, graphicStyle: 'hook', graphic: {} }])
+  assert.deepEqual(out, [{ copy: 'a', cta: undefined, format: 'prose', graphicStyle: 'hook', graphic: {} }])
 })
 
 test('drops malformed elements', () => {
   const out = parseDrafts('[{"copy":"ok"},{"nope":1},42]')
-  assert.deepEqual(out, [{ copy: 'ok', cta: undefined, graphicStyle: 'hook', graphic: {} }])
+  assert.deepEqual(out, [{ copy: 'ok', cta: undefined, format: 'prose', graphicStyle: 'hook', graphic: {} }])
 })
 
 test('throws when there is no array', () => {
@@ -23,12 +23,12 @@ test('throws when there is no array', () => {
 
 test('ignores trailing prose that contains a bracket', () => {
   const out = parseDrafts('[{"copy":"hi"}]\nSee [note] above.')
-  assert.deepEqual(out, [{ copy: 'hi', cta: undefined, graphicStyle: 'hook', graphic: {} }])
+  assert.deepEqual(out, [{ copy: 'hi', cta: undefined, format: 'prose', graphicStyle: 'hook', graphic: {} }])
 })
 
 test('handles brackets and escaped quotes inside the copy string', () => {
   const out = parseDrafts('[{"copy":"limited offer ] act now \\"today\\"","cta":"Book"}]')
-  assert.deepEqual(out, [{ copy: 'limited offer ] act now "today"', cta: 'Book', graphicStyle: 'hook', graphic: {} }])
+  assert.deepEqual(out, [{ copy: 'limited offer ] act now "today"', cta: 'Book', format: 'prose', graphicStyle: 'hook', graphic: {} }])
 })
 
 test('parses graphic fields and style when present', () => {
@@ -118,4 +118,29 @@ test('generateDrafts caps created posts to opts.count even when model returns mo
   // Exactly ONE create call — the second draft must be sliced off
   assert.equal(createCalls.length, 1, 'should create exactly 1 post when count:1')
   assert.equal(ids.length, 1, 'should return exactly 1 id')
+})
+
+test('buildPostTitle leads with the theme and collapses whitespace', () => {
+  // The list view is the posting calendar. A title carrying raw newlines wraps the row and
+  // pushes the date column out of alignment, which is what made the calendar hard to scan.
+  const t = buildPostTitle('Denial-rate reduction', 'Website traffic doesn\'t pay.\n\nThe CT scanner does.')
+  assert.match(t, /^Denial-rate reduction — /)
+  assert.doesNotMatch(t, /\n/)
+  assert.match(t, /Website traffic doesn't pay\. The CT scanner does\./)
+})
+
+test('buildPostTitle truncates long copy and survives a missing theme', () => {
+  const long = buildPostTitle('Cash-flow stabilization', 'x'.repeat(200))
+  assert.ok(long.length < 100, `title too long for a list column: ${long.length}`)
+  assert.equal(buildPostTitle('', 'just the copy'), 'just the copy')
+})
+
+test('parses the format field', () => {
+  const out = parseDrafts('[{"copy":"hi","format":"bullets"}]')
+  assert.equal(out[0].format, 'bullets')
+})
+
+test('defaults format to prose when absent or unknown', () => {
+  assert.equal(parseDrafts('[{"copy":"hi"}]')[0].format, 'prose')
+  assert.equal(parseDrafts('[{"copy":"hi","format":"banana"}]')[0].format, 'prose')
 })

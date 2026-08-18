@@ -49,6 +49,9 @@ export interface GuardrailResult {
 
 export type GraphicStyle = 'none' | 'hook' | 'stat' | 'dataviz'
 
+/** Whether a post is written as paragraphs or as a bulleted list. Generation-time only — not persisted. */
+export type PostFormat = 'prose' | 'bullets'
+
 export interface GraphicFields {
   headline?: string | null
   subtext?: string | null
