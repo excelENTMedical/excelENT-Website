@@ -1,9 +1,10 @@
 import { getPayloadClient } from '@/lib/payload'
 import { buildSystemPrompt } from './prompt'
 import type { BrandConfigForPrompt, GraphicFields, GraphicStyle } from './types'
-import { GRAPHIC_STYLES, GRAPHIC_KEYS, buildBrandConfig } from './generate'
+import { GRAPHIC_STYLES, GRAPHIC_KEYS, buildBrandConfig, buildGuardrailFlags } from './generate'
 import { callClaude } from './claude'
 import { checkGuardrails } from './guardrails'
+import { detectSlop } from './slop'
 
 export type ReviseTarget = 'copy' | 'graphic' | 'both'
 
@@ -104,6 +105,31 @@ export function parseRevision(text: string, target: ReviseTarget): RevisionResul
   return out
 }
 
+
+/**
+ * Rebuild generationMeta for a machine revision.
+ *
+ * originalCopy is set to the REVISED copy on purpose. buildCorpus reads
+ * `originalCopy !== copy` as a reviewer correction and promotes that pair into the
+ * highest-priority "learn the preference" exemplar tier. Leaving originalCopy at the
+ * previously generated text would launder every Revise click into the corpus as a human
+ * edit and teach the loop from its own output - the amplification bug this module guards
+ * against. Slop flags ride along so a revision cannot silently clear the review queue.
+ */
+export function buildRevisionMeta(
+  prevMeta: Record<string, any> | null | undefined,
+  copy: string,
+  brandConfig: BrandConfigForPrompt,
+): Record<string, any> {
+  const g = checkGuardrails(copy, brandConfig.bannedTerms, brandConfig.requiredDisclaimers)
+  const slop = detectSlop(copy, { requiredDisclaimers: brandConfig.requiredDisclaimers })
+  return {
+    ...(prevMeta || {}),
+    originalCopy: copy,
+    guardrailFlags: buildGuardrailFlags(g, slop.flags),
+  }
+}
+
 /** Rewrite a post's copy and/or graphic in place from a reviewer note. */
 export async function reviseDraft(
   postId: string | number,
@@ -128,13 +154,7 @@ export async function reviseDraft(
   if (rev.copy !== undefined) {
     data.copy = rev.copy
     if (rev.cta !== undefined) data.cta = rev.cta
-    const g = checkGuardrails(rev.copy, brandConfig.bannedTerms, brandConfig.requiredDisclaimers)
-    data.generationMeta = {
-      ...(p.generationMeta || {}),
-      guardrailFlags: g.ok
-        ? ''
-        : `banned: ${g.bannedHits.join(', ')}; missing disclaimers: ${g.missingDisclaimers.join(' | ')}`,
-    }
+    data.generationMeta = buildRevisionMeta(p.generationMeta, rev.copy, brandConfig)
   }
   if (rev.graphicStyle !== undefined) data.graphicStyle = rev.graphicStyle
   if (rev.graphic !== undefined) data.graphic = rev.graphic
