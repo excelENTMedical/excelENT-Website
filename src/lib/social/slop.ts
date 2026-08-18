@@ -116,6 +116,58 @@ const WEASEL =
 /** A line that is a bullet item. Bullets are legitimately short and legitimately preceded by a colon. */
 const BULLET_LINE = /^\s*[•]/
 
+/**
+ * A leading list marker. `•`, `-` and `*` all open a bullet; none of them is a dash.
+ *
+ * Kept separate from `BULLET_LINE` on purpose. `BULLET_LINE` governs `dramaticFragment` and
+ * `colonReveal`, where the spec scoped the exemption to the literal `•` the prompt asks for.
+ * Widening that here would silently un-flag short `-` lines that are prose, not a list.
+ */
+const LEADING_BULLET = /^[ \t]*[•\-*][ \t]+/
+
+/** A line made only of dashes or rule characters: a separator, not sentence punctuation. */
+const SEPARATOR_LINE = /^[ \t]*[-_\u2014\u2013\u2015*=]{3,}[ \t]*$/
+
+/**
+ * Every dash used as sentence punctuation, in any of its spellings.
+ *
+ * The em dash is only the most common spelling of this tic, and matching it alone was a
+ * hole with teeth: the repair pass pressures the model to remove em dashes without
+ * constraining the replacement, and the accept rule rewards any drop in flag count. So a
+ * straight substitution to `–` or ` - ` scored as a successful repair, saved, then passed the
+ * corpus quality gate as "clean" and got amplified as a top exemplar. The tic migrates and
+ * the system reads the migration as success.
+ *
+ * Alternatives, in order:
+ * - `—` (em dash), matched unconditionally — it has no other use in this copy.
+ * - `–` / `―` (en dash, horizontal bar), except between digits: `2022–2026` and `9–5` are
+ *   ranges, which is correct typography rather than a tic.
+ * - `--` or longer, between two non-spaces (`word--word`) or between two spaces (`word -- word`).
+ * - a lone `-` with whitespace on BOTH sides, mid-line. That two-sided requirement is the
+ *   entire safety margin: compound modifiers (`ENT-specific`), numeric ranges (`9-5`,
+ *   `2022-2026`) and dates never space their hyphen. All 82 hyphens in the live corpus on
+ *   2026-08-18 were compound modifiers, and none of them matches this.
+ */
+const DASH_PATTERN =
+  /\u2014|(?<!\d)[\u2013\u2015](?!\d)|(?<=\S)-{2,}(?=\S)|(?<=\s)-{2,}(?=\s)|(?<=\S)[ \t]+-[ \t]+(?=\S)/g
+
+/**
+ * Each dash-as-punctuation occurrence, with the line it sits on for the excerpt.
+ *
+ * Scanned line by line so list punctuation is removed before matching: a `- ` or `* ` bullet
+ * marker is blanked out, and a rule of dashes is skipped whole.
+ */
+function findDashHits(text: string): { match: string; line: string }[] {
+  const hits: { match: string; line: string }[] = []
+  for (const raw of text.split('\n')) {
+    if (SEPARATOR_LINE.test(raw)) continue
+    // Blank the marker rather than slicing it, so column offsets inside the line stay put.
+    const line = raw.replace(LEADING_BULLET, (m) => ' '.repeat(m.length))
+    for (const m of line.matchAll(DASH_PATTERN)) hits.push({ match: m[0], line: raw.trim() })
+  }
+  return hits
+}
+
 const MAX_FRAGMENT_WORDS = 4
 
 /**
@@ -160,12 +212,14 @@ export function detectSlop(copy: string, opts: DetectSlopOpts = {}): SlopResult 
   const text = prepare(copy, opts.requiredDisclaimers)
   const flags: SlopFlag[] = []
 
-  const emDashes = text.match(/—/g) || []
-  if (emDashes.length > 0) {
-    flags.push({ rule: 'emDash', excerpt: lineContaining(text, '—') })
+  // Rule names stay `emDash`/`multiEmDash` even though they now cover every dash spelling:
+  // `generationMeta.guardrailFlags` strings and the review queue already reference them.
+  const dashes = findDashHits(text)
+  if (dashes.length > 0) {
+    flags.push({ rule: 'emDash', excerpt: dashes[0].line })
   }
-  if (emDashes.length > 1) {
-    flags.push({ rule: 'multiEmDash', excerpt: `${emDashes.length} em dashes in one post` })
+  if (dashes.length > 1) {
+    flags.push({ rule: 'multiEmDash', excerpt: `${dashes.length} em-dash breaks in one post` })
   }
 
   const colon = text.match(COLON_REVEAL)

@@ -112,3 +112,66 @@ test('a colon introducing a comma-separated inline list is not a colonReveal', (
 test('a colon reveal with exactly one comma is still flagged', () => {
   assert.ok(rules('The best part: it learns your payer mix, fast.').includes('colonReveal'))
 })
+
+// --- dash variants -----------------------------------------------------------------
+// The em dash was only the most common spelling of the tic. Matching it alone let the
+// repair pass "succeed" by substituting an en dash or a spaced hyphen: flag count drops,
+// the accept rule takes it, the corpus gate reads it as clean, and it gets amplified as a
+// top exemplar. Every spelling has to be the same rule, or the tic just migrates.
+
+test('flags an en dash as emDash', () => {
+  const flags = detectSlop('The claim goes out – and comes back denied.').flags
+  assert.deepEqual(flags.map((f) => f.rule), ['emDash'])
+  assert.match(flags[0].excerpt, /claim goes out/)
+})
+
+test('flags a horizontal bar as emDash', () => {
+  assert.ok(rules('The phones ring all day ― nobody answers them.').includes('emDash'))
+})
+
+test('flags a double hyphen as emDash, spaced or unspaced', () => {
+  assert.ok(rules('The claim goes out -- and comes back denied.').includes('emDash'))
+  assert.ok(rules('The claim goes out--and comes back denied.').includes('emDash'))
+})
+
+test('flags a spaced hyphen used as a sentence-level dash', () => {
+  assert.ok(rules('The claim goes out - and comes back denied.').includes('emDash'))
+})
+
+test('a compound modifier is not a dash', () => {
+  // All 82 hyphens in the live corpus on 2026-08-18 were of this shape. Flagging them
+  // would drown the review queue in noise and teach reviewers to ignore the column.
+  const copy = 'ENT-specific coders handle every follow-up, in-office post-op and HIPAA-compliant hand-off.'
+  assert.deepEqual(rules(copy), [])
+})
+
+test('a numeric range is not a dash, hyphen or en dash', () => {
+  assert.deepEqual(rules('Front desk hours run 9-5 and the trend held from 2022-2026.'), [])
+  assert.deepEqual(rules('Front desk hours run 9–5 and the trend held from 2022–2026.'), [])
+})
+
+test('a hyphen bullet line is not a dash', () => {
+  const copy = 'Three things drive denials here:\n\n- Coding errors caught late\n- Payer patterns nobody tracks\n- Eligibility checked after the visit\n\nRequest a Demo.'
+  assert.ok(!rules(copy).includes('emDash'))
+})
+
+test('a separator rule of dashes is not a dash', () => {
+  assert.ok(!rules('Denials cost real money.\n\n---\n\nRequest a Demo.').includes('emDash'))
+})
+
+test('dash variants count together toward multiEmDash', () => {
+  // A post that swapped one em dash for an en dash used to read as a successful repair.
+  assert.deepEqual(
+    rules('One thing — then another – then a third.').sort(),
+    ['emDash', 'multiEmDash'],
+  )
+  assert.deepEqual(
+    rules('One thing -- then another - then a third.').sort(),
+    ['emDash', 'multiEmDash'],
+  )
+})
+
+test('a disclaimer carrying an en dash is still excluded', () => {
+  const disclaimer = 'This content is for general information only – it is not medical advice.'
+  assert.deepEqual(rules(`Book a visit today.\n\n${disclaimer}`, [disclaimer]), [])
+})
