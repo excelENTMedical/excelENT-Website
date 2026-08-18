@@ -2,8 +2,9 @@ import { getPayloadClient } from '@/lib/payload'
 import { buildCorpus } from './corpus'
 import { buildSystemPrompt, buildUserPrompt, PROMPT_VERSION } from './prompt'
 import { checkGuardrails, norm } from './guardrails'
+import { detectSlop, type SlopFlag } from './slop'
 import { callClaude } from './claude'
-import type { BrandConfigForPrompt, CorpusPost, GenerateOptions, GraphicFields, GraphicStyle, PostFormat } from './types'
+import type { BrandConfigForPrompt, CorpusPost, GenerateOptions, GraphicFields, GraphicStyle, GuardrailResult, PostFormat } from './types'
 
 interface ParsedDraft {
   copy: string
@@ -93,6 +94,55 @@ export function buildBrandConfig(brand: Record<string, any>): BrandConfigForProm
   }
 }
 
+/**
+ * Asks the model to fix its own slop, quoting each violation back at it.
+ *
+ * Scoped deliberately narrow. A wholesale rewrite produces correct, lifeless copy — the
+ * failure mode of mechanical de-slopping. Naming the offending spans and forbidding
+ * everything else keeps the voice the brand prompt built.
+ */
+export function buildRepairPrompt(copy: string, flags: SlopFlag[], format: PostFormat): string {
+  const violations = flags.map((f) => `- ${f.rule}: "${f.excerpt}"`).join('\n')
+  return [
+    'The post below breaks the writing rules in your brief. Fix it.',
+    '',
+    'VIOLATIONS:',
+    violations,
+    '',
+    'Rewrite ONLY what is needed to clear these violations. Keep the meaning, every fact and',
+    'figure, the call to action, and any required disclaimer word for word. Do not invent',
+    'numbers, do not add claims, and do not change the subject.',
+    format === 'bullets'
+      ? 'Keep the bulleted structure, including the • characters.'
+      : 'Keep it as prose. Do not convert it to a list.',
+    '',
+    'Return ONLY the corrected post text. No JSON, no commentary, no code fences.',
+    '',
+    'POST:',
+    copy,
+  ].join('\n')
+}
+
+/**
+ * Assemble the single `generationMeta.guardrailFlags` string from the hard guardrail result
+ * and any residual slop flags.
+ *
+ * One function, not two copies: the backfill script writes the same field on existing posts,
+ * and a drifting format there would make the review queue's flag column unreadable.
+ * Zero DDL by design — slop rides along in the existing string field.
+ */
+export function buildGuardrailFlags(guardrails: GuardrailResult, slopFlags: SlopFlag[]): string {
+  const parts: string[] = []
+  if (guardrails.bannedHits.length) parts.push(`banned: ${guardrails.bannedHits.join(', ')}`)
+  if (guardrails.missingDisclaimers.length) {
+    parts.push(`missing disclaimers: ${guardrails.missingDisclaimers.join(' | ')}`)
+  }
+  if (slopFlags.length) {
+    parts.push(`slop: ${[...new Set(slopFlags.map((f) => f.rule))].join(', ')}`)
+  }
+  return parts.join('; ')
+}
+
 export interface GenerateDraftsDeps {
   payload?: Awaited<ReturnType<typeof getPayloadClient>>
   callClaudeImpl?: typeof callClaude
@@ -151,18 +201,49 @@ export async function generateDrafts(
   const model = process.env.SOCIAL_MODEL || 'claude-sonnet-4-6'
   const created: string[] = []
   for (const d of drafts) {
-    const g = checkGuardrails(d.copy, brandConfig.bannedTerms, brandConfig.requiredDisclaimers)
+    let copy = d.copy
+    const disclaimers = brandConfig.requiredDisclaimers
+    const before = detectSlop(copy, { requiredDisclaimers: disclaimers })
+    let residual = before
+
+    // One attempt, best-effort. A repair failure must never cost the calendar a draft,
+    // and a retry loop on a stubborn theme burns credits with no ceiling.
+    if (!before.ok) {
+      try {
+        const { text: repaired } = await callClaudeImpl(
+          system,
+          buildRepairPrompt(copy, before.flags, d.format),
+        )
+        const candidate = repaired.trim()
+        if (candidate) {
+          const after = detectSlop(candidate, { requiredDisclaimers: disclaimers })
+          const stillCompliant =
+            checkGuardrails(candidate, brandConfig.bannedTerms, disclaimers).missingDisclaimers
+              .length === 0
+          // Accept only a strict improvement that kept the disclaimer. A repair is allowed
+          // to fail; it is not allowed to make the draft worse or drop mandated text.
+          if (after.flags.length < before.flags.length && stillCompliant) {
+            copy = candidate
+            residual = after
+          }
+        }
+      } catch {
+        // Leave the draft as generated; the flags below still surface it for review.
+      }
+    }
+
+    const g = checkGuardrails(copy, brandConfig.bannedTerms, disclaimers)
     const assetId = pickAsset()
     const doc = await payload.create({
       collection: 'social-posts',
       context: createContext,
       data: {
-        title: buildPostTitle(opts.theme, d.copy),
+        title: buildPostTitle(opts.theme, copy),
         brand: Number(brandId),
         platform: opts.platform,
         language: opts.language,
         theme: opts.theme,
-        copy: d.copy,
+        copy,
         cta: d.cta,
         graphicStyle: d.graphicStyle,
         graphic: d.graphic,
@@ -171,10 +252,11 @@ export async function generateDrafts(
         generationMeta: {
           model,
           promptVersion: PROMPT_VERSION,
-          originalCopy: d.copy,
-          guardrailFlags: g.ok
-            ? ''
-            : `banned: ${g.bannedHits.join(', ')}; missing disclaimers: ${g.missingDisclaimers.join(' | ')}`,
+          // Post-repair on purpose: buildCorpus reads originalCopy !== copy as a human
+          // edit. Storing the pre-repair draft would feed our own machine repair back as
+          // a human correction.
+          originalCopy: copy,
+          guardrailFlags: buildGuardrailFlags(g, residual.flags),
         },
       },
     })

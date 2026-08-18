@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { parseDrafts, buildBrandConfig, generateDrafts, buildPostTitle } from './generate'
+import { parseDrafts, buildBrandConfig, generateDrafts, buildPostTitle, buildRepairPrompt } from './generate'
 
 test('parses a clean JSON array', () => {
   const out = parseDrafts('[{"copy":"hi","cta":"Book"}]')
@@ -143,4 +143,134 @@ test('parses the format field', () => {
 test('defaults format to prose when absent or unknown', () => {
   assert.equal(parseDrafts('[{"copy":"hi"}]')[0].format, 'prose')
   assert.equal(parseDrafts('[{"copy":"hi","format":"banana"}]')[0].format, 'prose')
+})
+
+const brandDoc = {
+  id: 1, name: 'Brand', voice: 'v', audience: 'a',
+  themes: [], defaultCtas: [], bannedTerms: [], requiredDisclaimers: [], seedExamples: [],
+}
+
+test('buildRepairPrompt quotes each violation back to the model', () => {
+  const p = buildRepairPrompt('The claim goes out — and comes back.', [
+    { rule: 'emDash', excerpt: 'The claim goes out — and comes back.' },
+  ], 'prose')
+  assert.match(p, /emDash/)
+  assert.match(p, /The claim goes out/)
+})
+
+test('a flagged draft triggers exactly one repair call and saves the repaired copy', async () => {
+  const createCalls: any[] = []
+  const prompts: string[] = []
+  const fakePayload = {
+    findByID: async () => brandDoc,
+    find: async () => ({ docs: [] }),
+    create: async (args: any) => { createCalls.push(args); return { id: 7 } },
+  }
+  const fakeClaude = async (_sys: string, user: string) => {
+    prompts.push(user)
+    return prompts.length === 1
+      ? { text: '[{"copy":"The claim goes out — and comes back denied.","graphicStyle":"hook","graphic":{}}]' }
+      : { text: 'The claim goes out and comes back denied.' }
+  }
+
+  await generateDrafts(
+    '1', { theme: 'T', platform: 'linkedin', language: 'en', count: 1 }, {},
+    { payload: fakePayload as any, callClaudeImpl: fakeClaude as any },
+  )
+
+  assert.equal(prompts.length, 2, 'exactly one repair call')
+  assert.equal(createCalls[0].data.copy, 'The claim goes out and comes back denied.')
+  assert.equal(createCalls[0].data.generationMeta.guardrailFlags, '', 'repaired copy is clean')
+})
+
+test('a clean draft triggers no repair call', async () => {
+  const prompts: string[] = []
+  const fakePayload = {
+    findByID: async () => brandDoc,
+    find: async () => ({ docs: [] }),
+    create: async () => ({ id: 8 }),
+  }
+  const fakeClaude = async (_sys: string, user: string) => {
+    prompts.push(user)
+    return { text: '[{"copy":"Your coders know the payer mix before a claim goes out.","graphicStyle":"hook","graphic":{}}]' }
+  }
+
+  await generateDrafts(
+    '1', { theme: 'T', platform: 'linkedin', language: 'en', count: 1 }, {},
+    { payload: fakePayload as any, callClaudeImpl: fakeClaude as any },
+  )
+  assert.equal(prompts.length, 1)
+})
+
+test('a repair that does not improve the copy is discarded and residual flags are recorded', async () => {
+  const createCalls: any[] = []
+  let call = 0
+  const fakePayload = {
+    findByID: async () => brandDoc,
+    find: async () => ({ docs: [] }),
+    create: async (args: any) => { createCalls.push(args); return { id: 9 } },
+  }
+  const fakeClaude = async () => {
+    call++
+    return call === 1
+      ? { text: '[{"copy":"One — two — three.","graphicStyle":"hook","graphic":{}}]' }
+      : { text: 'Still — just — as — bad.' }
+  }
+
+  await generateDrafts(
+    '1', { theme: 'T', platform: 'linkedin', language: 'en', count: 1 }, {},
+    { payload: fakePayload as any, callClaudeImpl: fakeClaude as any },
+  )
+
+  assert.equal(createCalls[0].data.copy, 'One — two — three.', 'a worse repair is rejected')
+  assert.match(createCalls[0].data.generationMeta.guardrailFlags, /slop: emDash/)
+})
+
+test('generationMeta.originalCopy holds the saved copy, not the pre-repair draft', async () => {
+  const createCalls: any[] = []
+  let call = 0
+  const fakePayload = {
+    findByID: async () => brandDoc,
+    find: async () => ({ docs: [] }),
+    create: async (args: any) => { createCalls.push(args); return { id: 10 } },
+  }
+  const fakeClaude = async () => {
+    call++
+    return call === 1
+      ? { text: '[{"copy":"The claim goes out — denied.","graphicStyle":"hook","graphic":{}}]' }
+      : { text: 'The claim goes out and comes back denied every time.' }
+  }
+
+  await generateDrafts(
+    '1', { theme: 'T', platform: 'linkedin', language: 'en', count: 1 }, {},
+    { payload: fakePayload as any, callClaudeImpl: fakeClaude as any },
+  )
+
+  // buildCorpus treats originalCopy !== copy as a HUMAN edit and feeds it back as a
+  // before/after training pair. Storing the pre-repair draft here would teach the loop
+  // from our own machine repair — the amplification bug through the back door.
+  assert.equal(createCalls[0].data.generationMeta.originalCopy, createCalls[0].data.copy)
+})
+
+test('a repair that drops a required disclaimer is rejected', async () => {
+  const createCalls: any[] = []
+  let call = 0
+  const fakePayload = {
+    findByID: async () => ({ ...brandDoc, requiredDisclaimers: [{ text: 'Not medical advice.' }] }),
+    find: async () => ({ docs: [] }),
+    create: async (args: any) => { createCalls.push(args); return { id: 11 } },
+  }
+  const fakeClaude = async () => {
+    call++
+    return call === 1
+      ? { text: '[{"copy":"Book a visit — today. Not medical advice.","graphicStyle":"hook","graphic":{}}]' }
+      : { text: 'Book a visit today.' }
+  }
+
+  await generateDrafts(
+    '1', { theme: 'T', platform: 'linkedin', language: 'en', count: 1 }, {},
+    { payload: fakePayload as any, callClaudeImpl: fakeClaude as any },
+  )
+
+  assert.match(createCalls[0].data.copy, /Not medical advice\./)
 })
