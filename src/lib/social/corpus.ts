@@ -6,6 +6,19 @@ interface BuildCorpusOpts {
   maxApproved?: number
   maxEdited?: number
   maxRejections?: number
+  /**
+   * Disclaimers the brand mandates verbatim, passed straight through to `detectSlop`.
+   *
+   * Threaded in from the caller rather than looked up here: `CorpusPost` carries no brand,
+   * and `buildCorpus` must stay pure and synchronous because it runs on the generation hot
+   * path. A lookup would add I/O to a function that has none.
+   *
+   * Scoring without them is not cosmetic. The patient-facing disclaimer contains an em dash
+   * and an `X, not Y`, and by taking the last line it turns the real call to action into a
+   * `dramaticFragment`. A post that `generate.ts` scores at zero flags scores three here,
+   * so without this the "prefer clean" branch below can never fire for that brand.
+   */
+  requiredDisclaimers?: string[]
 }
 
 /**
@@ -28,8 +41,12 @@ const openerKey = (copy: string): string => norm(copy).split(' ').slice(0, 4).jo
  * Flagged posts are kept as a fallback, ordered fewest-flags-first: a brand with no clean
  * history still needs exemplars, and an empty corpus generates worse copy than a flawed one.
  */
-function rankByQuality(posts: CorpusPost[], max: number): CorpusPost[] {
-  const scored = posts.map((p) => ({ p, flags: detectSlop(p.copy).flags.length }))
+function rankByQuality(
+  posts: CorpusPost[],
+  max: number,
+  requiredDisclaimers: string[] = [],
+): CorpusPost[] {
+  const scored = posts.map((p) => ({ p, flags: detectSlop(p.copy, { requiredDisclaimers }).flags.length }))
   const clean = scored.filter((s) => s.flags === 0)
   // Array.prototype.sort is stable, so recency order survives within an equal flag count.
   const rest = scored.filter((s) => s.flags > 0).sort((a, b) => a.flags - b.flags)
@@ -50,7 +67,7 @@ const byNewest = (a: CorpusPost, b: CorpusPost): number =>
   (b.updatedAt || '').localeCompare(a.updatedAt || '')
 
 export function buildCorpus(posts: CorpusPost[], opts: BuildCorpusOpts = {}): FewShotCorpus {
-  const { maxApproved = 6, maxEdited = 4, maxRejections = 4 } = opts
+  const { maxApproved = 6, maxEdited = 4, maxRejections = 4, requiredDisclaimers = [] } = opts
   const sorted = [...posts].sort(byNewest)
 
   const approvedPosts = sorted.filter((p) => p.status === 'approved')
@@ -60,6 +77,7 @@ export function buildCorpus(posts: CorpusPost[], opts: BuildCorpusOpts = {}): Fe
   const editedPosts = rankByQuality(
     approvedPosts.filter((p) => p.originalCopy && norm(p.originalCopy) !== norm(p.copy)),
     maxEdited,
+    requiredDisclaimers,
   )
   const editedSet = new Set(editedPosts.map((p) => p.copy))
   const edited = editedPosts.map((p) => ({ before: p.originalCopy as string, after: p.copy }))
@@ -67,6 +85,7 @@ export function buildCorpus(posts: CorpusPost[], opts: BuildCorpusOpts = {}): Fe
   const approved = rankByQuality(
     approvedPosts.filter((p) => !editedSet.has(p.copy)),
     maxApproved,
+    requiredDisclaimers,
   ).map((p) => p.copy)
 
   const rejections = sorted

@@ -177,9 +177,12 @@ export async function generateDrafts(
     theme: d.theme,
     updatedAt: d.updatedAt,
   }))
-  const corpus = buildCorpus(corpusPosts)
-
   const brandConfig = buildBrandConfig(brand as Record<string, any>)
+
+  // Same disclaimer exclusion the repair pass below applies. Without it the exemplar
+  // scoring counts mandated compliance text as the writer's own slop, and a brand whose
+  // disclaimer carries an em dash can never produce a "clean" exemplar to rank first.
+  const corpus = buildCorpus(corpusPosts, { requiredDisclaimers: brandConfig.requiredDisclaimers })
 
   const system = buildSystemPrompt(brandConfig)
   const user = buildUserPrompt(brandConfig, corpus, opts)
@@ -227,8 +230,14 @@ export async function generateDrafts(
             residual = after
           }
         }
-      } catch {
-        // Leave the draft as generated; the flags below still surface it for review.
+      } catch (err) {
+        // Still swallowed: a repair failure must never cost the calendar a draft. But it
+        // must not be silent either — without this line a dead API key, a 429 or a timeout
+        // is indistinguishable from a repair that ran and was correctly refused.
+        payload.logger?.warn?.(
+          { err },
+          `social-generate: slop repair failed for brand ${brandId}; saving the unrepaired draft`,
+        )
       }
     }
 

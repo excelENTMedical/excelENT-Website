@@ -107,3 +107,45 @@ test('falls back to flagged posts rather than returning an empty corpus', () => 
   assert.equal(c.approved.length, 2, 'a brand with no clean history must still generate')
   assert.equal(c.approved[0], 'A single tic — right here.', 'fewest flags first')
 })
+
+// The brand-4 disclaimer, verbatim from brand_profiles_required_disclaimers. It carries an
+// em dash AND an `X, not Y`, and by taking the last line it turns the real CTA into a
+// dramaticFragment. Scored bare it costs a compliant patient post three flags it did not
+// earn — enough that the "prefer clean" branch could never fire for that brand.
+const patientDisclaimer =
+  'This is general education, not medical advice. Symptoms and the right treatment vary from person to person — talk to a doctor about your situation.'
+
+test('scores exemplars with the brand disclaimer excluded, like generate.ts does', () => {
+  const compliant = `Sinus pressure that lingers past ten days is worth a look.\n\nBook a visit.\n\n${patientDisclaimer}`
+  const tic = `One thing — then another — then a third.\n\n${patientDisclaimer}`
+  const c = buildCorpus(
+    [
+      post({ copy: tic, status: 'approved', updatedAt: '2026-08-17T00:00:00.000Z' }),
+      post({ copy: compliant, status: 'approved', updatedAt: '2026-08-01T00:00:00.000Z' }),
+    ],
+    { maxApproved: 1, requiredDisclaimers: [patientDisclaimer] },
+  )
+  assert.deepEqual(c.approved, [compliant], 'the clean post must outrank the more recent tic')
+})
+
+test('a mandated disclaimer alone never demotes an exemplar', () => {
+  const compliant = `Sinus pressure that lingers past ten days is worth a look.\n\nBook a visit.\n\n${patientDisclaimer}`
+  const c = buildCorpus([post({ copy: compliant, status: 'approved' })], {
+    maxApproved: 1,
+    requiredDisclaimers: [patientDisclaimer],
+  })
+  assert.deepEqual(c.approved, [compliant])
+})
+
+test('the edited pairs get the same disclaimer exclusion', () => {
+  const after = `Sinus pressure that lingers past ten days is worth a look.\n\nBook a visit.\n\n${patientDisclaimer}`
+  const tic = `A single tic — right here.\n\n${patientDisclaimer}`
+  const c = buildCorpus(
+    [
+      post({ copy: tic, originalCopy: 'was worse', status: 'approved', updatedAt: '2026-08-17T00:00:00.000Z' }),
+      post({ copy: after, originalCopy: 'was worse too', status: 'approved', updatedAt: '2026-08-01T00:00:00.000Z' }),
+    ],
+    { maxEdited: 1, requiredDisclaimers: [patientDisclaimer] },
+  )
+  assert.deepEqual(c.edited, [{ before: 'was worse too', after }])
+})

@@ -274,3 +274,57 @@ test('a repair that drops a required disclaimer is rejected', async () => {
 
   assert.match(createCalls[0].data.copy, /Not medical advice\./)
 })
+
+test('a repair call that throws is logged and still saves the unrepaired draft', async () => {
+  // A repair broken by a 429, a timeout or a missing API key used to be indistinguishable
+  // from one that ran and was correctly refused: the catch was bare. The flags look the
+  // same either way, so without a log line a silently dead repair pass is invisible.
+  const createCalls: any[] = []
+  const warns: any[][] = []
+  let call = 0
+  const fakePayload = {
+    findByID: async () => brandDoc,
+    find: async () => ({ docs: [] }),
+    create: async (args: any) => { createCalls.push(args); return { id: 12 } },
+    logger: { warn: (...a: any[]) => { warns.push(a) } },
+  }
+  const fakeClaude = async () => {
+    call++
+    if (call === 1) return { text: '[{"copy":"The claim goes out — denied.","graphicStyle":"hook","graphic":{}}]' }
+    throw new Error('429 rate limited')
+  }
+
+  await generateDrafts(
+    '1', { theme: 'T', platform: 'linkedin', language: 'en', count: 1 }, {},
+    { payload: fakePayload as any, callClaudeImpl: fakeClaude as any },
+  )
+
+  assert.equal(createCalls.length, 1, 'the save must never be blocked by a repair failure')
+  assert.equal(createCalls[0].data.copy, 'The claim goes out — denied.', 'copy left as generated')
+  assert.match(createCalls[0].data.generationMeta.guardrailFlags, /slop: emDash/)
+  assert.equal(call, 2, 'one repair attempt, no retry')
+  assert.equal(warns.length, 1, 'exactly one warning')
+  assert.match(warns[0][1], /repair failed/)
+  assert.equal(warns[0][0].err.message, '429 rate limited')
+})
+
+test('a repair failure survives a payload client with no logger', async () => {
+  const createCalls: any[] = []
+  let call = 0
+  const fakePayload = {
+    findByID: async () => brandDoc,
+    find: async () => ({ docs: [] }),
+    create: async (args: any) => { createCalls.push(args); return { id: 13 } },
+  }
+  const fakeClaude = async () => {
+    call++
+    if (call === 1) return { text: '[{"copy":"The claim goes out — denied.","graphicStyle":"hook","graphic":{}}]' }
+    throw new Error('boom')
+  }
+
+  await generateDrafts(
+    '1', { theme: 'T', platform: 'linkedin', language: 'en', count: 1 }, {},
+    { payload: fakePayload as any, callClaudeImpl: fakeClaude as any },
+  )
+  assert.equal(createCalls.length, 1)
+})
