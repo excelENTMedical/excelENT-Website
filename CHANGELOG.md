@@ -2,6 +2,71 @@
 
 All notable changes to the ExcelENT site (patient + B2B) live here. Most recent at top.
 
+## 2026-09-03 — Five content-shape layouts for social graphics
+
+The five layouts the client approved on 2026-09-01 existed only as throwaway scripts that
+rendered PNGs and were deleted. They are now real templates in the pipeline, driven by CMS
+content, rendered through the same `/api/social/graphic` route as the legacy cards.
+
+### The layouts
+`graphicStyle` gains five values alongside `hook`/`stat`/`dataviz`. Each is chosen because the
+post has that shape, not to vary the look for its own sake:
+
+| Style | Used when the content is |
+|---|---|
+| `object` | one artefact with a number attached |
+| `twoband` | two competing sequences |
+| `contrast` | the same items, before and after |
+| `orbit` | one hub with peers around it, no sequence |
+| `statement` | a claim with nothing to enumerate |
+
+### Landscape rendering
+Layout templates render 1536×1024; the legacy cards stay 1080×1080. `canvasFor(style)` picks the
+canvas, so a single renderer serves both. `GRAPHIC_SIZE` is unchanged and still means the square.
+
+### Content, not hard-coding
+Three new columns feed the layouts, so nothing about a post lives in the template:
+- `graphic.items` — one row per line, `Label | Description | icon`. Feeds the step row, the orbit
+  satellites and the contrast checklist. On `twoband` a line of `--` splits the upper band from the
+  lower one; with no separator the upper band is dropped rather than filled with invented content.
+- `graphic.descriptor` — the small-caps line under the lockup, defaulting to the brand's own.
+- `graphic.artefact` — `Label / Stamp` for the illustrated object, e.g. `Claim / Denied`. Blank
+  gives a plain document with no stamp.
+
+Every block degrades: absent content removes the block instead of substituting placeholder copy.
+Applied with `scripts/apply-social-posts-layout-columns.sql` (already run against `excelent_cms`).
+
+### Illustration tier in the theme
+`GraphicTheme` gains the two approved lavenders (`lav1`/`lav2`/`lav3`, `chip`, `paper`) plus
+`deep`, `grey` and `mute`. The lavenders are decoration only — ribbons, icon circles, object
+shading, chart fills — never type, buttons, the logo, or the lockup, matching the constraint
+written into every brand profile's `image_style_guidance` on 2026-09-01.
+
+### Brand lockups
+`src/lib/social/graphics/brands.ts` maps a brand slug to its `PS | PRODUCT` wordmark and
+descriptor. Only `REVENUE CYCLE MANAGEMENT` is the client's own wording; the other four are
+placeholders, flagged by `descriptorConfirmed: false` and pinned by a test that lists exactly which
+brands are still waiting on real wording.
+
+### Fixes found by rendering
+- `splitHeadline` now breaks a single-clause headline at the word boundary nearest the middle.
+  Without it "Their decision happens fast." rendered entirely navy and lost the two-tone treatment
+  every approved graphic has.
+- The contrast panel notes were clamped as one string before being split, truncating the
+  right-hand note mid-sentence. Each half is clamped separately now.
+- An orbit satellite at 30° landed past the right canvas edge once caption offset went from
+  `R + 78` to `R + 112`; the caption box is clamped to the canvas rather than pulling the ring in.
+- `twoband` and `contrast` pooled all their slack into one gap; both now distribute it.
+
+### Satori constraint, documented in code
+Satori serialises `<svg>` subtrees to a string, so a React Fragment inside one throws
+`Cannot convert a Symbol value to a string`. `layout/primitives.tsx` carries the note and the
+`Svg` wrapper that takes element or array children only.
+
+Tests: 255 pass. Every layout is rendered twice in `render.test.ts` — once fully populated, once
+with a completely empty `graphic` group — because the second case is what a half-filled post
+actually sends.
+
 ## 2026-08-18 — Social writing quality: slop detection, corpus quality gate, bullets
 
 The v2 anti-slop rules decayed from 27% back to 100% em-dash usage over four weeks. The cause was not the prompt: `buildCorpus` selected few-shot exemplars by **recency alone** and the user prompt labelled them "match this quality and tone", so any tic that survived human review became the next template. Three of the eight most recently approved posts opened with `Most [noun]` — a formula nothing instructed. This closes that loop and adds measurement.

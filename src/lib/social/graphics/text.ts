@@ -1,3 +1,5 @@
+import type { GraphicItem } from '@/lib/social/types'
+
 /** Trim and cap a string, appending an ellipsis if it was cut. */
 export function clamp(s: string, max: number): string {
   const t = (s || '').trim()
@@ -16,4 +18,59 @@ export function splitHook(headline: string): { lead: string; accent: string } {
   const m = t.match(/^([\s\S]*[.!?])\s+(\S[\s\S]*)$/)
   if (m) return { lead: m[1].trim(), accent: m[2].trim() }
   return { lead: t, accent: '' }
+}
+
+/**
+ * Parse the `items` field: one row per line, `Label | Description | icon`.
+ * Description and icon are both optional. Blank lines and empty labels drop out.
+ */
+export function parseItems(raw: string | null | undefined, max = 5): GraphicItem[] {
+  return String(raw ?? '')
+    .split('\n')
+    .map((line) => {
+      const [label, desc, icon] = line.split('|')
+      return {
+        label: (label || '').trim(),
+        desc: (desc || '').trim(),
+        icon: (icon || '').trim() || null,
+      }
+    })
+    .filter((it) => it.label.length > 0)
+    .slice(0, max)
+}
+
+/**
+ * Split a headline for the two-tone treatment: navy lead, purple accent.
+ *
+ * Prefers a sentence break, then the last comma. Failing both, a single-clause
+ * headline is broken at the word boundary nearest the middle — without this a
+ * line like "Their decision happens fast." renders entirely navy and loses the
+ * treatment every approved graphic has. Under four words there is nothing to
+ * balance, so the line stays whole.
+ */
+export function splitHeadline(headline: string): { lead: string; accent: string } {
+  const t = (headline || '').trim()
+  const sentence = splitHook(t)
+  if (sentence.accent) return sentence
+  const c = t.lastIndexOf(', ')
+  if (c > 0) return { lead: t.slice(0, c + 1).trim(), accent: t.slice(c + 2).trim() }
+
+  const words = t.split(/\s+/).filter(Boolean)
+  if (words.length < 4) return { lead: t, accent: '' }
+  let at = 1
+  let best = Infinity
+  for (let i = 1; i < words.length; i++) {
+    const diff = Math.abs(words.slice(0, i).join(' ').length - words.slice(i).join(' ').length)
+    if (diff < best) {
+      best = diff
+      at = i
+    }
+  }
+  return { lead: words.slice(0, at).join(' '), accent: words.slice(at).join(' ') }
+}
+
+/** Parse the artefact field: `Label / Stamp`, both optional. */
+export function parseArtefact(raw: string | null | undefined): { label: string; stamp: string } {
+  const [label, ...rest] = String(raw ?? '').split('/')
+  return { label: (label || '').trim(), stamp: rest.join('/').trim() }
 }

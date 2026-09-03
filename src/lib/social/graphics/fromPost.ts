@@ -6,15 +6,19 @@ import type { RenderArgs } from './render'
 export interface PostForGraphic {
   graphicStyle?: GraphicStyle | null
   graphic?: GraphicFields | null
+  cta?: string | null
   brand: { name?: string | null; slug?: string | null } | number | string
 }
 
 export function buildGraphicFromPost(post: PostForGraphic): RenderArgs {
   const brand = (typeof post.brand === 'object' && post.brand) || {}
+  const slug = (brand.slug as string) || null
   return {
     style: (post.graphicStyle as GraphicStyle) || 'none',
     fields: (post.graphic as GraphicFields) || {},
     brandName: (brand.name as string) || 'excelENT',
-    theme: THEMES[themeForBrand({ slug: (brand.slug as string) || null })],
+    brandSlug: slug,
+    cta: post.cta || null,
+    theme: THEMES[themeForBrand({ slug })],
   }
 }

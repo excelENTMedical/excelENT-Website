@@ -103,6 +103,13 @@ export const SocialPosts: CollectionConfig = {
                 { label: 'Hook card', value: 'hook' },
                 { label: 'Stat hero', value: 'stat' },
                 { label: 'Data-viz', value: 'dataviz' },
+                // Content-shape layouts (1536x1024). Pick the one whose shape the
+                // post actually has — the shape is part of the argument.
+                { label: 'Object — one artefact + a number', value: 'object' },
+                { label: 'Two bands — two competing sequences', value: 'twoband' },
+                { label: 'Contrast — same items, before/after', value: 'contrast' },
+                { label: 'Orbit — a hub with peers, no sequence', value: 'orbit' },
+                { label: 'Statement — a claim, nothing to list', value: 'statement' },
               ],
             },
             {
@@ -116,6 +123,31 @@ export const SocialPosts: CollectionConfig = {
                 { name: 'statTo', type: 'text', admin: { description: 'e.g. "2.5%" — stat/data-viz.' } },
                 { name: 'statLabel', type: 'text', admin: { description: 'e.g. "ENT Denial Rate".' } },
                 { name: 'caption', type: 'text', admin: { description: 'Small footer line (data-viz).' } },
+                {
+                  name: 'items',
+                  type: 'textarea',
+                  admin: {
+                    description:
+                      'Layout templates only. One row per line: Label | Description | icon. '
+                      + 'Description and icon are optional. On Two bands, a line of -- splits the upper '
+                      + 'band from the lower one. Icons: code, shield, users, calendar, chart, phone, '
+                      + 'search, list, clock, exit, pin, doc.',
+                  },
+                },
+                {
+                  name: 'descriptor',
+                  type: 'text',
+                  admin: { description: 'Small-caps line under the lockup. Defaults to the brand’s own.' },
+                },
+                {
+                  name: 'artefact',
+                  type: 'text',
+                  admin: {
+                    description:
+                      'Object layout only. "Label / Stamp" for the illustrated object, e.g. "Claim / Denied". '
+                      + 'Leave blank for a plain document with no stamp.',
+                  },
+                },
               ],
             },
           ],
