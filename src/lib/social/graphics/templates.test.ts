@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { prepareHook } from './templates/hook'
 import { prepareStat } from './templates/stat'
 import { prepareDataViz } from './templates/dataviz'
-import { hasStatPair, prepareLayout } from './templates/shared'
+import { NO_DESCRIPTOR, hasStatPair, prepareLayout } from './templates/shared'
 
 const brand = 'PS | RCM'
 
@@ -42,6 +42,14 @@ test('prepareLayout fills the lockup from the brand slug', () => {
 test('prepareLayout lets the post override the brand descriptor', () => {
   const d = prepareLayout({ fields: { descriptor: 'CUSTOM LINE' }, brandSlug: 'ps-rcm' })
   assert.equal(d.descriptor, 'CUSTOM LINE')
+})
+
+test(`prepareLayout drops the descriptor on ${NO_DESCRIPTOR}, without falling back to the brand`, () => {
+  // The brands with unconfirmed placeholder descriptors need a way to publish
+  // a layout with no descriptor line at all.
+  const d = prepareLayout({ fields: { descriptor: NO_DESCRIPTOR }, brandSlug: 'ps-lexi' })
+  assert.equal(d.descriptor, null)
+  assert.equal(d.product, 'LEXI')
 })
 
 test('prepareLayout prefers the graphic caption over the post cta', () => {

@@ -1,0 +1,44 @@
+{
+  "9": {
+    "copy": "The phones don't stop at 5 p.m., but your team does, and they deserve to.\n\nEvery call that rolls to voicemail after hours sends that patient one of two ways, and most of them do not try again tomorrow. They book with whichever practice picked up the phone instead.\n\nPS | Lexi answers on the first ring, around the clock and during the peak hours when your front desk can't get to every line. It handles sinus, allergy and balloon procedure calls, insurance verification and scheduling, and books directly into your EMR. Your team walks in to appointments already on the books, with insurance verified.\n\nMake PS | Lexi part of your team.\n\n#ENTPractice #PracticeManagement #excelENT #VirtualOfficeAssistant #PatientExperience #MedicalOffice #HealthcareOperations",
+    "graphicStyle": "statement",
+    "graphic": {
+      "headline": "After hours is when ENT patients decide.",
+      "subtext": "Answered on the first ring, day and night. 24/7-365, EMR-integrated, built for ENT.",
+      "descriptor": "-"
+    },
+    "scheduledTime": "2026-09-10T13:00:00.000Z"
+  },
+  "24": {
+    "graphicStyle": "orbit",
+    "graphic": {
+      "headline": "One ecosystem. Every part of your practice.",
+      "subtext": "From patient acquisition to post-visit billing, excelENT connects it all.",
+      "descriptor": "-",
+      "items": "RCM|Claims to collections|doc\nLEXI|Calls answered, day and night|phone\nCONNECT|Patients matched and verified|search"
+    },
+    "scheduledTime": "2026-09-09T13:00:00.000Z"
+  },
+  "38": {
+    "copy": "Today's sinus patient searches online, looks at two or three practice profiles, and books with whoever responds first. If your front office is busy or the inquiry lands after hours, that patient has already moved on.\n\nPS | Connect identifies sinus patients in your market, verifies their insurance coverage, and matches them to your practice before any contact is made. When they reach your schedule they are already qualified, arriving within 48 hours of that first match, without adding intake burden to your team.\n\nPractices that are growing patient volume right now have a pipeline moving while others wait for the phone to ring.",
+    "graphicStyle": "statement",
+    "graphic": {
+      "headline": "The first practice to answer wins the patient.",
+      "subtext": "PS | Connect routes insurance-verified sinus patients to a kept appointment within 48 hours, without growing your front office.",
+      "descriptor": "-"
+    },
+    "scheduledTime": "2026-09-04T13:00:00.000Z"
+  },
+  "14": {
+    "graphicStyle": "object",
+    "graphic": {
+      "headline": "Denials cost more to fix every year.",
+      "subtext": "Up 30% since 2022. And 43% of denials are never recovered.",
+      "statFrom": "$43.84",
+      "statTo": "$57.23",
+      "statLabel": "Cost to rework one denied claim",
+      "artefact": "Claim / Denied"
+    },
+    "scheduledTime": "2026-09-08T13:00:00.000Z"
+  }
+}

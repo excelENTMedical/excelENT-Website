@@ -18,6 +18,14 @@ export interface LayoutData {
   artefactStamp: string
 }
 
+/**
+ * A descriptor of `-` suppresses the line entirely, rather than falling back to
+ * the brand default. Four of the five brand descriptors in `brands.ts` are still
+ * unconfirmed placeholders, so a post must be able to say "no descriptor" and
+ * mean it — otherwise placeholder wording rides out on a published graphic.
+ */
+export const NO_DESCRIPTOR = '-'
+
 export interface LayoutInput {
   fields: GraphicFields
   brandSlug?: string | null
@@ -40,7 +48,7 @@ export function prepareLayout({ fields, brandSlug, cta }: LayoutInput): LayoutDa
     sub: clamp(fields.subtext || '', 340),
     items: parseItems(fields.items, 12),
     product: lock.product,
-    descriptor: (fields.descriptor || lock.descriptor || '').trim() || null,
+    descriptor: resolveDescriptor(fields.descriptor, lock.descriptor),
     cta: clamp(fields.caption || cta || '', 60) || null,
     statFrom: (fields.statFrom || '').trim(),
     statTo: (fields.statTo || '').trim(),
@@ -48,6 +56,12 @@ export function prepareLayout({ fields, brandSlug, cta }: LayoutInput): LayoutDa
     artefactLabel: artefact.label,
     artefactStamp: artefact.stamp,
   }
+}
+
+function resolveDescriptor(field: string | null | undefined, fallback: string): string | null {
+  const own = (field || '').trim()
+  if (own === NO_DESCRIPTOR) return null
+  return (own || fallback || '').trim() || null
 }
 
 /** True when both ends of a stat pair are present. */

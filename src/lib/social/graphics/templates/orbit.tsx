@@ -19,9 +19,17 @@ const R = 268
 const SAT_W = 236
 const EDGE = 24
 
-/** Evenly spaced around the ring, first item at twelve o'clock. */
+/**
+ * Evenly spaced around the ring, first item at twelve o'clock.
+ *
+ * An even count would otherwise put a satellite at six o'clock, where its
+ * caption collides with the footer CTA. Half a step of rotation moves an even
+ * ring onto the diagonals and clears the bottom of the canvas; odd counts
+ * already miss it.
+ */
 function angles(n: number): number[] {
-  return Array.from({ length: n }, (_, i) => -90 + (360 / n) * i)
+  const offset = n % 2 === 0 ? 180 / n : 0
+  return Array.from({ length: n }, (_, i) => -90 + offset + (360 / n) * i)
 }
 
 export function OrbitCard({ data, theme }: { data: LayoutData; theme: GraphicTheme }) {

@@ -19,3 +19,19 @@ ALTER TYPE enum_social_posts_graphic_style ADD VALUE IF NOT EXISTS 'statement';
 ALTER TABLE social_posts ADD COLUMN IF NOT EXISTS graphic_items text;
 ALTER TABLE social_posts ADD COLUMN IF NOT EXISTS graphic_descriptor varchar;
 ALTER TABLE social_posts ADD COLUMN IF NOT EXISTS graphic_artefact varchar;
+
+-- The versions table must move in step. `social-posts` sets versions.maxPerDoc,
+-- so every update writes a row to `_social_posts_v` through its own mirrored
+-- columns and its own enum type. Leaving these behind (as the first run of this
+-- file did, on 2026-09-03) breaks EVERY update to a social post — including
+-- approving one in the admin — because the version write fails on the missing
+-- column. Added the same day, once a repair script tripped over it.
+ALTER TYPE enum__social_posts_v_version_graphic_style ADD VALUE IF NOT EXISTS 'object';
+ALTER TYPE enum__social_posts_v_version_graphic_style ADD VALUE IF NOT EXISTS 'twoband';
+ALTER TYPE enum__social_posts_v_version_graphic_style ADD VALUE IF NOT EXISTS 'contrast';
+ALTER TYPE enum__social_posts_v_version_graphic_style ADD VALUE IF NOT EXISTS 'orbit';
+ALTER TYPE enum__social_posts_v_version_graphic_style ADD VALUE IF NOT EXISTS 'statement';
+
+ALTER TABLE _social_posts_v ADD COLUMN IF NOT EXISTS version_graphic_items text;
+ALTER TABLE _social_posts_v ADD COLUMN IF NOT EXISTS version_graphic_descriptor varchar;
+ALTER TABLE _social_posts_v ADD COLUMN IF NOT EXISTS version_graphic_artefact varchar;

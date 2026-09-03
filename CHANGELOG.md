@@ -2,6 +2,38 @@
 
 All notable changes to the ExcelENT site (patient + B2B) live here. Most recent at top.
 
+## 2026-09-03 — Layout fixes, a descriptor opt-out, and the four stalled posts
+
+Follow-on to the layouts shipped earlier the same day, found by deploying them and by putting
+real posts through them.
+
+### The versions table was left behind
+`apply-social-posts-layout-columns.sql` only moved `social_posts`. The collection sets
+`versions.maxPerDoc`, so every update also writes `_social_posts_v` through mirrored columns and
+its own enum, and that table still had the legacy four styles and none of the three new columns.
+Once a process loaded the new field config, **every update to a social post failed, including
+approving one in the admin**. The script now covers both tables and stays idempotent.
+
+### A descriptor that can be turned off
+`graphic.descriptor` of `-` suppresses the lockup line rather than falling back to the brand
+default. Four of the five descriptors in `brands.ts` are unconfirmed placeholders, so a post needs
+a way to say "no descriptor" and mean it — otherwise placeholder wording rides out on a published
+graphic. Only `ps-rcm` carries one the client approved.
+
+### Orbit
+- An even item count put a satellite at six o'clock, where its caption rendered underneath the
+  footer CTA. Even counts now sit on the diagonals; odd counts already cleared it.
+- Worth knowing when filling `graphic.items` for this layout: it draws every satellite as
+  `PS | LABEL`, because the ring was designed for the product family. Generic capability labels
+  come out as product names that do not exist.
+
+### The four posts that failed before LinkedIn was connected
+#9, #24, #38 and #14 were all prompt `v1`, the generation that ran 91% em dashes, and two had no
+graphic at all. `scripts/social-repair-2026-09.mts` repairs them through `reviseDraft`, re-detects
+slop and goes again, then sets graphic fields, a layout style and one pillar-day slot each so they
+send one a day instead of four at once. They return to draft for re-approval. The exact published
+wording lives in the sibling `.json`.
+
 ## 2026-09-03 — Five content-shape layouts for social graphics
 
 The five layouts the client approved on 2026-09-01 existed only as throwaway scripts that

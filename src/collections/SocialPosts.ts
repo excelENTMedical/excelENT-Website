@@ -137,7 +137,10 @@ export const SocialPosts: CollectionConfig = {
                 {
                   name: 'descriptor',
                   type: 'text',
-                  admin: { description: 'Small-caps line under the lockup. Defaults to the brand’s own.' },
+                  admin: {
+                    description:
+                      'Small-caps line under the lockup. Blank uses the brand’s own; a single - drops the line.',
+                  },
                 },
                 {
                   name: 'artefact',
