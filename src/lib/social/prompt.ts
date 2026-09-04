@@ -3,7 +3,7 @@ import type { BrandConfigForPrompt, FewShotCorpus, GenerateOptions, Platform } f
 // Bumped when the instructions change in a way that should show up in the copy. Stored on
 // every post as generationMeta.promptVersion, so you can tell which rules a draft was
 // written under. v2 added the anti-slop writing rules below. v3 added bullets and the mid-sentence negation contrast rule.
-export const PROMPT_VERSION = 'v3-bullets'
+export const PROMPT_VERSION = 'v4-layouts'
 
 /**
  * Writing rules distilled from the `no-ai-slop` skill (github.com/petergyang/no-ai-slop,
@@ -147,16 +147,31 @@ export function buildUserPrompt(
   }
 
   lines.push(
-    '\nAlso design a square brand graphic for each post. Choose a graphicStyle:' +
-      '\n- "hook": one punchy line (set graphic.headline to a 4–9 word hook ending in a period).' +
-      '\n- "stat": a single before→after number (set graphic.statFrom, graphic.statTo, graphic.statLabel, and a short graphic.subtext).' +
-      '\n- "dataviz": a two-bar comparison (set graphic.statFrom, graphic.statTo, graphic.statLabel, graphic.caption).' +
-      '\nUse ONLY numbers and facts already present in the brand voice/themes/approved posts — never invent figures.',
+    '\nAlso design a landscape brand graphic for each post. Pick the graphicStyle from the SHAPE of ' +
+      'what the post says, never for variety:' +
+      '\n- "statement": a claim with nothing to enumerate. Set graphic.headline (4 to 9 words, ending ' +
+      'in a period) and a short graphic.subtext.' +
+      '\n- "object": one artefact with a number attached. Set graphic.headline, graphic.statFrom, ' +
+      'graphic.statTo, graphic.statLabel, and graphic.artefact as "Label / Stamp", e.g. "Claim / Denied".' +
+      '\n- "contrast": the same items before and after. Set graphic.headline, graphic.items, and ' +
+      'graphic.subtext as "left note || right note".' +
+      '\n- "twoband": two competing sequences. Set graphic.headline and graphic.items, with a line of ' +
+      '-- separating the upper band from the lower.' +
+      '\n- "orbit": one hub with peers around it, no sequence. Set graphic.headline, graphic.subtext and ' +
+      '3 or 4 graphic.items. Every orbit item is drawn as "PS | LABEL", so each label must be a real ' +
+      'product (RCM, LEXI, CONNECT) and never a generic capability.' +
+      '\ngraphic.items is one row per line, "Label | Description | icon". icon is one of: phone, search, ' +
+      'list, clock, exit, shield, pin, calendar, chart, users, doc, code.' +
+      '\nLeave a field out rather than filling it with something invented. An absent block is dropped ' +
+      'from the layout; a fabricated one ships.' +
+      '\nDo not set graphic.descriptor. It comes from the brand.' +
+      '\nUse ONLY numbers and facts already present in the brand voice/themes/approved posts. Never ' +
+      'invent figures.',
   )
   lines.push(
     '\nReturn ONLY a JSON array. Each element: {"copy":"<post text>","cta":"<cta>","format":"prose|bullets",' +
-      '"graphicStyle":"hook|stat|dataviz",' +
-      '"graphic":{"headline":"","subtext":"","statFrom":"","statTo":"","statLabel":"","caption":""}}. ' +
+      '"graphicStyle":"statement|object|contrast|twoband|orbit",' +
+      '"graphic":{"headline":"","subtext":"","statFrom":"","statTo":"","statLabel":"","caption":"","items":"","artefact":""}}. ' +
       'Include only the graphic keys your chosen style needs. No prose, no markdown code fences.',
   )
   return lines.join('\n')

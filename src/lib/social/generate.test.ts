@@ -1,20 +1,20 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { parseDrafts, buildBrandConfig, generateDrafts, buildPostTitle, buildRepairPrompt } from './generate'
+import { parseDrafts, buildBrandConfig, generateDrafts, buildPostTitle, buildRepairPrompt, graphicFor } from './generate'
 
 test('parses a clean JSON array', () => {
   const out = parseDrafts('[{"copy":"hi","cta":"Book"}]')
-  assert.deepEqual(out, [{ copy: 'hi', cta: 'Book', format: 'prose', graphicStyle: 'hook', graphic: {} }])
+  assert.deepEqual(out, [{ copy: 'hi', cta: 'Book', format: 'prose', graphicStyle: 'statement', graphic: {} }])
 })
 
 test('tolerates fences and surrounding prose', () => {
   const out = parseDrafts('Here you go:\n```json\n[{"copy":"a"}]\n```\nThanks!')
-  assert.deepEqual(out, [{ copy: 'a', cta: undefined, format: 'prose', graphicStyle: 'hook', graphic: {} }])
+  assert.deepEqual(out, [{ copy: 'a', cta: undefined, format: 'prose', graphicStyle: 'statement', graphic: {} }])
 })
 
 test('drops malformed elements', () => {
   const out = parseDrafts('[{"copy":"ok"},{"nope":1},42]')
-  assert.deepEqual(out, [{ copy: 'ok', cta: undefined, format: 'prose', graphicStyle: 'hook', graphic: {} }])
+  assert.deepEqual(out, [{ copy: 'ok', cta: undefined, format: 'prose', graphicStyle: 'statement', graphic: {} }])
 })
 
 test('throws when there is no array', () => {
@@ -23,30 +23,52 @@ test('throws when there is no array', () => {
 
 test('ignores trailing prose that contains a bracket', () => {
   const out = parseDrafts('[{"copy":"hi"}]\nSee [note] above.')
-  assert.deepEqual(out, [{ copy: 'hi', cta: undefined, format: 'prose', graphicStyle: 'hook', graphic: {} }])
+  assert.deepEqual(out, [{ copy: 'hi', cta: undefined, format: 'prose', graphicStyle: 'statement', graphic: {} }])
 })
 
 test('handles brackets and escaped quotes inside the copy string', () => {
   const out = parseDrafts('[{"copy":"limited offer ] act now \\"today\\"","cta":"Book"}]')
-  assert.deepEqual(out, [{ copy: 'limited offer ] act now "today"', cta: 'Book', format: 'prose', graphicStyle: 'hook', graphic: {} }])
+  assert.deepEqual(out, [{ copy: 'limited offer ] act now "today"', cta: 'Book', format: 'prose', graphicStyle: 'statement', graphic: {} }])
 })
 
-test('parses graphic fields and style when present', () => {
+test('parses graphic fields and maps a legacy style onto its layout', () => {
   const out = parseDrafts('[{"copy":"hi","cta":"Book","graphicStyle":"stat","graphic":{"statFrom":"11.8%","statTo":"2.5%","statLabel":"Denial Rate","headline":"h","subtext":"s","caption":"c"}}]')
-  assert.equal(out[0].graphicStyle, 'stat')
+  assert.equal(out[0].graphicStyle, 'object')
   assert.equal(out[0].graphic?.statFrom, '11.8%')
   assert.equal(out[0].graphic?.statLabel, 'Denial Rate')
 })
 
-test('defaults graphicStyle to hook and graphic to empty when absent', () => {
+test('defaults graphicStyle to statement and graphic to empty when absent', () => {
   const out = parseDrafts('[{"copy":"hi"}]')
-  assert.equal(out[0].graphicStyle, 'hook')
+  assert.equal(out[0].graphicStyle, 'statement')
   assert.deepEqual(out[0].graphic, {})
 })
 
-test('coerces an unknown graphicStyle to hook', () => {
+test('parses a layout style with its items and artefact', () => {
+  const out = parseDrafts(
+    '[{"copy":"hi","graphicStyle":"orbit","graphic":{"headline":"h","items":"RCM|Claims|doc","artefact":"Claim / Denied"}}]',
+  )
+  assert.equal(out[0].graphicStyle, 'orbit')
+  assert.equal(out[0].graphic.items, 'RCM|Claims|doc')
+  assert.equal(out[0].graphic.artefact, 'Claim / Denied')
+})
+
+test('graphicFor blanks the descriptor for a confirmed brand and blocks it for a placeholder', () => {
+  // ps-rcm is the only brand whose descriptor came from the client; the rest must
+  // never print theirs, however the model filled the field.
+  const draft = { graphicStyle: 'statement' as const, graphic: { headline: 'h', descriptor: 'MADE UP' } }
+  assert.equal(graphicFor(draft, 'ps-rcm').descriptor, undefined)
+  assert.equal(graphicFor(draft, 'ps-lexi').descriptor, '-')
+})
+
+test('graphicFor leaves a legacy card alone', () => {
+  const draft = { graphicStyle: 'hook' as const, graphic: { headline: 'h' } }
+  assert.deepEqual(graphicFor(draft, 'ps-lexi'), { headline: 'h' })
+})
+
+test('coerces an unknown graphicStyle to statement', () => {
   const out = parseDrafts('[{"copy":"hi","graphicStyle":"banana"}]')
-  assert.equal(out[0].graphicStyle, 'hook')
+  assert.equal(out[0].graphicStyle, 'statement')
 })
 
 test('buildBrandConfig maps a brand doc to prompt config', () => {

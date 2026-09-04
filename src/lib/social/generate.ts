@@ -5,6 +5,9 @@ import { checkGuardrails, norm } from './guardrails'
 import { detectSlop, type SlopFlag } from './slop'
 import { callClaude } from './claude'
 import type { BrandConfigForPrompt, CorpusPost, GenerateOptions, GraphicFields, GraphicStyle, GuardrailResult, PostFormat } from './types'
+import { LAYOUT_STYLES, isLayoutStyle } from './types'
+import { lockupForBrand } from './graphics/brands'
+import { NO_DESCRIPTOR } from './graphics/templates/shared'
 
 interface ParsedDraft {
   copy: string
@@ -14,9 +17,35 @@ interface ParsedDraft {
   graphic: GraphicFields
 }
 
-export const GRAPHIC_STYLES: GraphicStyle[] = ['none', 'hook', 'stat', 'dataviz']
+/**
+ * What the generator may choose. The five content-shape layouts, plus 'none'.
+ *
+ * The legacy cards stay valid on the posts that already use them, but they are no
+ * longer generated: they render in Montserrat on a square canvas and predate the
+ * brand system the layouts implement.
+ */
+export const GRAPHIC_STYLES: GraphicStyle[] = ['none', ...LAYOUT_STYLES]
+
+/**
+ * A model that reaches for a legacy style gets the layout of the same shape,
+ * rather than falling through to a default that ignores what it decided.
+ */
+const LEGACY_TO_LAYOUT: Record<string, GraphicStyle> = {
+  hook: 'statement',
+  stat: 'object',
+  dataviz: 'contrast',
+}
+
+/** Accept what the model chose, mapping a legacy pick onto its layout. Shared by generate + revise. */
+export function coerceGraphicStyle(raw: string): GraphicStyle {
+  if (GRAPHIC_STYLES.includes(raw as GraphicStyle)) return raw as GraphicStyle
+  return LEGACY_TO_LAYOUT[raw] ?? 'statement'
+}
+
 export const POST_FORMATS: PostFormat[] = ['prose', 'bullets']
-export const GRAPHIC_KEYS: (keyof GraphicFields)[] = ['headline', 'subtext', 'statFrom', 'statTo', 'statLabel', 'caption']
+export const GRAPHIC_KEYS: (keyof GraphicFields)[] = [
+  'headline', 'subtext', 'statFrom', 'statTo', 'statLabel', 'caption', 'items', 'artefact',
+]
 
 /** Tolerate stray prose or ```json fences around the JSON array. */
 export function parseDrafts(text: string): ParsedDraft[] {
@@ -60,10 +89,24 @@ export function parseDrafts(text: string): ParsedDraft[] {
         copy: String((d as any).copy).trim(),
         cta: (d as any).cta ? String((d as any).cta).trim() : undefined,
         format: (POST_FORMATS.includes(rawFormat as PostFormat) ? rawFormat : 'prose') as PostFormat,
-        graphicStyle: (GRAPHIC_STYLES.includes(rawStyle as GraphicStyle) ? rawStyle : 'hook') as GraphicStyle,
+        graphicStyle: coerceGraphicStyle(rawStyle),
         graphic,
       }
     })
+}
+
+/**
+ * The lockup descriptor is brand data, not post copy, so the generator never sets it.
+ * Four of the five brands still carry placeholder wording in `brands.ts`; those get the
+ * explicit "no descriptor" marker so a placeholder can never ride out on a graphic.
+ * The one confirmed brand is left blank, which is what falls back to its own descriptor.
+ */
+export function graphicFor(d: { graphicStyle: GraphicStyle; graphic: GraphicFields }, slug: string | null): GraphicFields {
+  if (!isLayoutStyle(d.graphicStyle)) return d.graphic
+  const graphic = { ...d.graphic }
+  if (lockupForBrand(slug).descriptorConfirmed) delete graphic.descriptor
+  else graphic.descriptor = NO_DESCRIPTOR
+  return graphic
 }
 
 /** Map a brand-profiles doc to the prompt config. Shared by generate + revise. */
@@ -255,7 +298,7 @@ export async function generateDrafts(
         copy,
         cta: d.cta,
         graphicStyle: d.graphicStyle,
-        graphic: d.graphic,
+        graphic: graphicFor(d, brand.slug ?? null),
         asset: assetId != null ? Number(assetId) : undefined,
         status: 'draft',
         generationMeta: {

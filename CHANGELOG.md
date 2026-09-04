@@ -2,6 +2,33 @@
 
 All notable changes to the ExcelENT site (patient + B2B) live here. Most recent at top.
 
+## 2026-09-04 — The generator picks a layout
+
+Until now `graphicStyle` was a manual pick in the admin: the generator only ever suggested
+`hook`/`stat`/`dataviz`, so a layout was only used if a human chose it.
+
+### Chosen by shape
+The prompt now describes the five layouts by the shape of what the post says, with the fields each
+one needs, the `Label | Description | icon` row format and the icon vocabulary. `PROMPT_VERSION`
+moves to `v4-layouts` so the corpus analysis can separate before from after.
+
+`GRAPHIC_STYLES` is the five layouts plus `none`. The legacy cards stay valid on the posts that
+already use them but are no longer generated, and a model that reaches for one is mapped onto the
+layout of the same shape (`hook`→`statement`, `stat`→`object`, `dataviz`→`contrast`) rather than
+falling through to a default that ignores what it decided. `revise.ts` carries the same list in
+both graphic contracts, so a revision cannot drag a post back to a legacy card. `items` and
+`artefact` now survive parsing.
+
+### The generator can never set a descriptor
+`graphicFor()` strips `graphic.descriptor` for the one brand whose descriptor the client approved,
+so it falls back to the real one, and forces `-` for the four that are still placeholders. The
+prompt also says not to set it; the code does not rely on that.
+
+### Two lessons from the first four posts through the layouts
+Both are now in the prompt: orbit labels must be real products, because the ring draws every
+satellite as `PS | LABEL`; and a field should be left out rather than filled with something
+invented, because an absent block is dropped from the layout while a fabricated one ships.
+
 ## 2026-09-03 — Layout fixes, a descriptor opt-out, and the four stalled posts
 
 Follow-on to the layouts shipped earlier the same day, found by deploying them and by putting

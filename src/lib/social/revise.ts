@@ -1,7 +1,7 @@
 import { getPayloadClient } from '@/lib/payload'
 import { buildSystemPrompt } from './prompt'
 import type { BrandConfigForPrompt, GraphicFields, GraphicStyle } from './types'
-import { GRAPHIC_STYLES, GRAPHIC_KEYS, buildBrandConfig, buildGuardrailFlags } from './generate'
+import { GRAPHIC_KEYS, buildBrandConfig, buildGuardrailFlags, coerceGraphicStyle, graphicFor } from './generate'
 import { callClaude } from './claude'
 import { checkGuardrails } from './guardrails'
 import { detectSlop } from './slop'
@@ -19,16 +19,21 @@ const COPY_CONTRACT =
   '\nRewrite ONLY the post copy per the feedback; keep it on-brand. Return ONLY JSON: ' +
   '{"copy":"<new post text>","cta":"<the call to action you used>"}. No prose, no markdown code fences.'
 
+/** Kept in step with the generator's own list in prompt.ts. */
+const LAYOUTS = 'statement|object|contrast|twoband|orbit'
+
 const GRAPHIC_CONTRACT =
-  '\nRewrite ONLY the graphic per the feedback. Choose a graphicStyle (hook|stat|dataviz) and fill the ' +
-  'graphic fields it needs. Return ONLY JSON: {"graphicStyle":"hook|stat|dataviz",' +
-  '"graphic":{"headline":"","subtext":"","statFrom":"","statTo":"","statLabel":"","caption":""}}. ' +
+  `\nRewrite ONLY the graphic per the feedback. Choose a graphicStyle (${LAYOUTS}) from the shape of ` +
+  'what the post says, and fill the graphic fields it needs. graphic.items is one row per line, ' +
+  '"Label | Description | icon". Do not set graphic.descriptor; it comes from the brand. ' +
+  `Return ONLY JSON: {"graphicStyle":"${LAYOUTS}",` +
+  '"graphic":{"headline":"","subtext":"","statFrom":"","statTo":"","statLabel":"","caption":"","items":"","artefact":""}}. ' +
   'Include only the keys the chosen style needs. No prose, no markdown code fences.'
 
 const BOTH_CONTRACT =
   '\nRewrite BOTH the post copy and the graphic per the feedback. Return ONLY JSON: ' +
-  '{"copy":"...","cta":"...","graphicStyle":"hook|stat|dataviz","graphic":{...}}. ' +
-  'No prose, no markdown code fences.'
+  `{"copy":"...","cta":"...","graphicStyle":"${LAYOUTS}","graphic":{...}}. ` +
+  'Do not set graphic.descriptor; it comes from the brand. No prose, no markdown code fences.'
 
 export function buildRevisePrompt(
   brand: BrandConfigForPrompt,
@@ -96,7 +101,7 @@ export function parseRevision(text: string, target: ReviseTarget): RevisionResul
   }
   if (target === 'graphic' || target === 'both') {
     const rawStyle = String(obj.graphicStyle || '')
-    if (rawStyle) out.graphicStyle = (GRAPHIC_STYLES.includes(rawStyle as GraphicStyle) ? rawStyle : 'hook') as GraphicStyle
+    if (rawStyle) out.graphicStyle = coerceGraphicStyle(rawStyle)
     const g = (obj.graphic || {}) as Record<string, unknown>
     const graphic: GraphicFields = {}
     for (const k of GRAPHIC_KEYS) if (g[k] != null && g[k] !== '') graphic[k] = String(g[k]).trim()
@@ -157,7 +162,12 @@ export async function reviseDraft(
     data.generationMeta = buildRevisionMeta(p.generationMeta, rev.copy, brandConfig)
   }
   if (rev.graphicStyle !== undefined) data.graphicStyle = rev.graphicStyle
-  if (rev.graphic !== undefined) data.graphic = rev.graphic
+  if (rev.graphic !== undefined) {
+    // Same rule as generation: the descriptor is the brand's, never the model's.
+    const style = rev.graphicStyle ?? (p.graphicStyle as GraphicStyle)
+    const slug = (p.brand as Record<string, unknown> | null)?.slug as string | null
+    data.graphic = graphicFor({ graphicStyle: style, graphic: rev.graphic }, slug ?? null)
+  }
 
   await payload.update({ collection: 'social-posts', id: postId, data })
 }

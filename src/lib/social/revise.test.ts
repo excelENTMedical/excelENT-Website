@@ -49,7 +49,7 @@ test('parseRevision(copy) returns only copy/cta', () => {
 
 test('parseRevision(graphic) returns only graphic fields and coerces unknown style', () => {
   const out = parseRevision('{"graphicStyle":"banana","graphic":{"statFrom":"9%","headline":""}}', 'graphic')
-  assert.equal(out.graphicStyle, 'hook')
+  assert.equal(out.graphicStyle, 'statement')
   assert.deepEqual(out.graphic, { statFrom: '9%' })
   assert.equal(out.copy, undefined)
 })
@@ -57,7 +57,7 @@ test('parseRevision(graphic) returns only graphic fields and coerces unknown sty
 test('parseRevision(both) returns copy and graphic, tolerating fences/prose', () => {
   const out = parseRevision('Sure:\n```json\n{"copy":"c","cta":"Book","graphicStyle":"stat","graphic":{"statTo":"2%"}}\n```', 'both')
   assert.equal(out.copy, 'c')
-  assert.equal(out.graphicStyle, 'stat')
+  assert.equal(out.graphicStyle, 'object')
   assert.deepEqual(out.graphic, { statTo: '2%' })
 })
 

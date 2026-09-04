@@ -57,7 +57,7 @@ test('user prompt includes corpus sections when present', () => {
 test('exposes a prompt version string', () => {
   // Stored per post as generation_meta_prompt_version, so bumping it is how we tell
   // drafts written under the old rules from drafts written under the new ones.
-  assert.equal(PROMPT_VERSION, 'v3-bullets')
+  assert.equal(PROMPT_VERSION, 'v4-layouts')
 })
 
 test('system prompt bans the AI-slop vocabulary', () => {
