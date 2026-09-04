@@ -4,7 +4,7 @@ import { Deco, Frame, Headline, Rule, Footer, row } from '../layout/primitives'
 import { IconChip, iconAt } from '../layout/icons'
 import { logoDataUri } from '../layout/assets'
 import type { LayoutData } from './shared'
-import { clamp } from '../text'
+import { clamp, stripLockupPrefix } from '../text'
 
 /**
  * ORBIT — one hub with peers around it, no sequence.
@@ -33,7 +33,7 @@ function angles(n: number): number[] {
 }
 
 export function OrbitCard({ data, theme }: { data: LayoutData; theme: GraphicTheme }) {
-  const items = data.items.slice(0, 4)
+  const items = stripLockupPrefix(data.items).slice(0, 4)
   const at = angles(items.length || 1)
   const bars = [58, 92, 130, 176, 228]
 

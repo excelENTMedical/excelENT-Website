@@ -1,6 +1,14 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { clamp, parseArtefact, parseItems, parsePercent, splitHeadline, splitHook } from './text'
+import {
+  clamp,
+  parseArtefact,
+  parseItems,
+  parsePercent,
+  splitHeadline,
+  splitHook,
+  stripLockupPrefix,
+} from './text'
 
 test('clamp trims to length with an ellipsis', () => {
   assert.equal(clamp('hello world', 5), 'hello…')
@@ -93,4 +101,26 @@ test('parseArtefact splits the label from the stamp', () => {
   assert.deepEqual(parseArtefact('Claim / Denied'), { label: 'Claim', stamp: 'Denied' })
   assert.deepEqual(parseArtefact('Claim'), { label: 'Claim', stamp: '' })
   assert.deepEqual(parseArtefact(null), { label: '', stamp: '' })
+})
+
+test('stripLockupPrefix shifts a row that wrote the lockup into the label', () => {
+  // "PS | RCM | chart" parses as label PS, desc RCM, icon chart.
+  assert.deepEqual(stripLockupPrefix(parseItems('PS | RCM | chart')), [
+    { label: 'RCM', desc: '', icon: 'chart' },
+  ])
+})
+
+test('stripLockupPrefix keeps a description when the third field is not an icon', () => {
+  assert.deepEqual(stripLockupPrefix(parseItems('PS | Lexi | Answers every call')), [
+    { label: 'Lexi', desc: 'Answers every call', icon: null },
+  ])
+})
+
+test('stripLockupPrefix leaves well-formed rows alone', () => {
+  const rows = parseItems('RCM | Cleaner claims | chart\nConnect | New patients | users')
+  assert.deepEqual(stripLockupPrefix(rows), rows)
+})
+
+test('stripLockupPrefix drops a bare PS row with nothing to shift up', () => {
+  assert.deepEqual(stripLockupPrefix(parseItems('PS')), [])
 })

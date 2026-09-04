@@ -158,12 +158,15 @@ export function buildUserPrompt(
       '\n- "twoband": two competing sequences. Set graphic.headline and graphic.items, with a line of ' +
       '-- separating the upper band from the lower.' +
       '\n- "orbit": one hub with peers around it, no sequence. Set graphic.headline, graphic.subtext and ' +
-      '3 or 4 graphic.items. Every orbit item is drawn as "PS | LABEL", so each label must be a real ' +
-      'product (RCM, LEXI, CONNECT) and never a generic capability.' +
+      '3 or 4 graphic.items. The layout prints the PS lockup around each label itself, so a label is ' +
+      'the bare product name — RCM, Lexi or Connect — never a generic capability, and never written ' +
+      'with a PS prefix or a pipe of its own.' +
       '\ngraphic.items is one row per line, "Label | Description | icon". icon is one of: phone, search, ' +
       'list, clock, exit, shield, pin, calendar, chart, users, doc, code.' +
       '\nLeave a field out rather than filling it with something invented. An absent block is dropped ' +
       'from the layout; a fabricated one ships.' +
+      '\nThe WRITING RULES above apply to every word on the graphic too, not only the post copy. ' +
+      'Headlines, subtext, captions and item text carry no em dashes.' +
       '\nDo not set graphic.descriptor. It comes from the brand.' +
       '\nUse ONLY numbers and facts already present in the brand voice/themes/approved posts. Never ' +
       'invent figures.',

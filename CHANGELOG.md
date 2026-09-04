@@ -2,6 +2,34 @@
 
 All notable changes to the ExcelENT site (patient + B2B) live here. Most recent at top.
 
+## 2026-09-04 — Orbit renders `PS | PS`, and the writing rules reach the graphic
+
+Found by dry-running the new prompt across all five brands rather than waiting for the calendar
+to produce a post. Both defects were in yesterday's work.
+
+### The lockup written into a pipe-delimited field
+`graphic.items` rows are `Label | Description | icon`. The prompt told the model that orbit draws
+each satellite as `PS | LABEL` — so it wrote `PS | RCM | chart`, which parses to label `PS`,
+description `RCM`, and renders a satellite reading `PS | PS`. All three satellites, every time.
+
+The prompt now says a label is the bare product name and carries no `PS` and no pipe of its own.
+`stripLockupPrefix` in `text.ts` then shifts any row that still leads with `PS` back by one field,
+so the doubled lockup cannot ship whatever the model writes. The shift is only decidable because
+the icon vocabulary is closed: a trailing field naming an icon stays an icon, anything else
+becomes the description.
+
+### The writing rules stopped at the post copy
+The em-dash rule reads "in posts this short", and the model applied it to the copy only — a
+`statement` subtext came back with an em dash in it, headed for the most visible part of the
+graphic. The graphic block now states that the writing rules cover every word on the canvas.
+
+Nothing had been generated under the old wording, so `PROMPT_VERSION` stays `v4-layouts`.
+
+### Seeing generator output without spending a calendar slot
+`scripts/v4-dryrun.mts` builds the real prompts, calls Claude, and prints the draft with the
+graphic fields and slop flags — creating nothing. The planner fills a 14-day horizon, so a prompt
+change is otherwise invisible until the calendar rolls past every draft written under the old one.
+
 ## 2026-09-04 — The generator picks a layout
 
 Until now `graphicStyle` was a manual pick in the admin: the generator only ever suggested

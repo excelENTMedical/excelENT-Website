@@ -1,4 +1,5 @@
 import type { GraphicItem } from '@/lib/social/types'
+import { isIconName } from './layout/icons'
 
 /** Trim and cap a string, appending an ellipsis if it was cut. */
 export function clamp(s: string, max: number): string {
@@ -37,6 +38,32 @@ export function parseItems(raw: string | null | undefined, max = 5): GraphicItem
     })
     .filter((it) => it.label.length > 0)
     .slice(0, max)
+}
+
+/**
+ * Recover an orbit row that wrote the whole lockup into the label field.
+ *
+ * Orbit draws every satellite as `PS | LABEL`, so a row's label is the bare
+ * product name. But `graphic.items` is itself pipe-delimited, so a model that
+ * writes the lockup out in full — `PS | RCM | chart` — parses into label `PS`,
+ * desc `RCM`, and the satellite renders `PS | PS`. The prompt asks for the bare
+ * name; this makes shipping the doubled lockup impossible either way.
+ *
+ * Shifting is only safe because the icon vocabulary is closed: a third field
+ * that names an icon stays an icon, and anything else becomes the description.
+ */
+export function stripLockupPrefix(items: GraphicItem[]): GraphicItem[] {
+  return items
+    .map((it) => {
+      if (it.label.trim().toUpperCase() !== 'PS') return it
+      const iconIsName = isIconName(it.icon)
+      return {
+        label: it.desc,
+        desc: iconIsName ? '' : (it.icon ?? ''),
+        icon: iconIsName ? it.icon : null,
+      }
+    })
+    .filter((it) => it.label.length > 0)
 }
 
 /**
