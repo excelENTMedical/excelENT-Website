@@ -1,7 +1,7 @@
 import { getPayloadClient } from '@/lib/payload'
 import { buildSystemPrompt } from './prompt'
 import type { BrandConfigForPrompt, GraphicFields, GraphicStyle } from './types'
-import { GRAPHIC_KEYS, buildBrandConfig, buildGuardrailFlags, coerceGraphicStyle, graphicFor } from './generate'
+import { GRAPHIC_KEYS, buildBrandConfig, buildGuardrailFlags, coerceGraphicStyle, graphicFor, styleForContent } from './generate'
 import { callClaude } from './claude'
 import { checkGuardrails } from './guardrails'
 import { detectSlop } from './slop'
@@ -101,10 +101,12 @@ export function parseRevision(text: string, target: ReviseTarget): RevisionResul
   }
   if (target === 'graphic' || target === 'both') {
     const rawStyle = String(obj.graphicStyle || '')
-    if (rawStyle) out.graphicStyle = coerceGraphicStyle(rawStyle)
     const g = (obj.graphic || {}) as Record<string, unknown>
     const graphic: GraphicFields = {}
     for (const k of GRAPHIC_KEYS) if (g[k] != null && g[k] !== '') graphic[k] = String(g[k]).trim()
+    // Checked against the fields of this same revision, not the post's old ones:
+    // the revision replaces the graphic wholesale.
+    if (rawStyle) out.graphicStyle = styleForContent(coerceGraphicStyle(rawStyle), graphic)
     if (Object.keys(graphic).length || out.graphicStyle) out.graphic = graphic
   }
   return out

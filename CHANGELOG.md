@@ -2,6 +2,34 @@
 
 All notable changes to the ExcelENT site (patient + B2B) live here. Most recent at top.
 
+## 2026-09-09 (later) — A revision now re-renders the graphic it revised
+
+Asking the AI to fix white space appeared to do nothing. It had in fact worked — post #24 went
+`twoband` → `orbit` — but `reviseDraft` only writes `graphicStyle` and `graphic`, and the preview
+shows the *attached* image rather than a live render. The fields moved; the PNG did not. Same
+shape of bug as the two image buttons: half the pipeline updates, the other half doesn't know.
+
+### Changed
+- **`renderAndAttachGraphic` is now a single owner** (`graphics/attach.ts`). The sequence was
+  inline in `POST /api/social/graphic` and duplicated again in `scripts/regen-graphics.mts`.
+- **`POST /api/social/revise` re-renders** when the revision touched the graphic. Guarded by
+  `shouldReplaceAsset`: a machine render is a pure function of the graphic fields and is stale
+  once they move, but **a human upload is never clobbered** — `source` is what tells them apart.
+  A render failure is logged and swallowed, because the revision itself is already saved.
+- Filenames carry a second-resolution stamp; regenerating twice in a day used to collide and let
+  Payload silently suffix the name.
+
+### Fixed
+- **A layout could be chosen without the content it needs.** Post #54 was revised to `contrast`
+  with no items at all and rendered an empty AFTER panel on a mostly-white canvas — worse than
+  the image it replaced. `styleForContent` now holds the model to its choice: the enumerating
+  layouts (`twoband`, `contrast`, `orbit`) need at least one row that is not a bare `--`
+  separator, and `object` needs an artefact or a full stat pair. Anything else falls back to
+  `statement`, which needs nothing but the headline. Applied at both parse sites, so it covers
+  generation as well as revision.
+
+278 tests pass. An audit found post #54 was the only row carrying the mismatch; it is repaired.
+
 ## 2026-09-09 — Retire the AI image button; fix three layout defects
 
 "Regenerate image" kept producing the old style. The cause was not the layout pipeline: the

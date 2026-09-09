@@ -7,7 +7,8 @@ export interface PostForGraphic {
   graphicStyle?: GraphicStyle | null
   graphic?: GraphicFields | null
   cta?: string | null
-  brand: { name?: string | null; slug?: string | null } | number | string
+  // A depth:1 relationship comes back populated, id included; depth:0 leaves the id itself.
+  brand: { id?: number | string; name?: string | null; slug?: string | null } | number | string
 }
 
 export function buildGraphicFromPost(post: PostForGraphic): RenderArgs {

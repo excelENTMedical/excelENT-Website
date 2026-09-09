@@ -26,7 +26,11 @@ export default function ReviseDraftButton() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'failed')
-      setMsg('Revised — reloading to show the new draft…')
+      setMsg(
+        data.regenerated
+          ? 'Revised and the graphic re-rendered — reloading…'
+          : 'Revised — reloading to show the new draft…',
+      )
       window.location.reload()
     } catch (e) {
       setMsg(`Error: ${e instanceof Error ? e.message : 'failed'}`)

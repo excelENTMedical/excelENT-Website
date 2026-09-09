@@ -42,6 +42,35 @@ export function coerceGraphicStyle(raw: string): GraphicStyle {
   return LEGACY_TO_LAYOUT[raw] ?? 'statement'
 }
 
+/** Rows that would actually draw — a bare `--` band separator is not one. */
+function realItemCount(items: string | null | undefined): number {
+  return String(items ?? '')
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0 && !/^-{2,}$/.test(l)).length
+}
+
+/**
+ * Hold the model to the layout it chose: a style it cannot fill becomes one it can.
+ *
+ * "Every block degrades" is right for an optional block, but an enumerating
+ * layout with nothing to enumerate has no content left — post #54 was revised to
+ * `contrast` with no items and rendered an empty AFTER panel on a white canvas.
+ * `statement` is the honest fallback because it needs nothing but the headline.
+ */
+export function styleForContent(style: GraphicStyle, fields: GraphicFields): GraphicStyle {
+  if (style === 'none' || style === 'statement') return style
+  if (style === 'twoband' || style === 'contrast' || style === 'orbit') {
+    return realItemCount(fields.items) > 0 ? style : 'statement'
+  }
+  if (style === 'object') {
+    const hasArtefact = Boolean((fields.artefact || '').trim())
+    const hasStatPair = Boolean((fields.statFrom || '').trim() && (fields.statTo || '').trim())
+    return hasArtefact || hasStatPair ? style : 'statement'
+  }
+  return style
+}
+
 export const POST_FORMATS: PostFormat[] = ['prose', 'bullets']
 export const GRAPHIC_KEYS: (keyof GraphicFields)[] = [
   'headline', 'subtext', 'statFrom', 'statTo', 'statLabel', 'caption', 'items', 'artefact',
@@ -89,7 +118,7 @@ export function parseDrafts(text: string): ParsedDraft[] {
         copy: String((d as any).copy).trim(),
         cta: (d as any).cta ? String((d as any).cta).trim() : undefined,
         format: (POST_FORMATS.includes(rawFormat as PostFormat) ? rawFormat : 'prose') as PostFormat,
-        graphicStyle: coerceGraphicStyle(rawStyle),
+        graphicStyle: styleForContent(coerceGraphicStyle(rawStyle), graphic),
         graphic,
       }
     })

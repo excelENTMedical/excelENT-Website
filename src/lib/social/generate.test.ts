@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { parseDrafts, buildBrandConfig, generateDrafts, buildPostTitle, buildRepairPrompt, graphicFor } from './generate'
+import { parseDrafts, buildBrandConfig, generateDrafts, buildPostTitle, buildRepairPrompt, graphicFor, styleForContent } from './generate'
 
 test('parses a clean JSON array', () => {
   const out = parseDrafts('[{"copy":"hi","cta":"Book"}]')
@@ -349,4 +349,34 @@ test('a repair failure survives a payload client with no logger', async () => {
     { payload: fakePayload as any, callClaudeImpl: fakeClaude as any },
   )
   assert.equal(createCalls.length, 1)
+})
+
+test('styleForContent keeps a layout the content can actually fill', () => {
+  assert.equal(styleForContent('twoband', { items: 'A|B|doc\n--\nC|D|phone' }), 'twoband')
+  assert.equal(styleForContent('orbit', { items: 'RCM|Claims|doc' }), 'orbit')
+  assert.equal(styleForContent('object', { artefact: 'CLAIM / DENIED' }), 'object')
+  assert.equal(styleForContent('object', { statFrom: '11.8%', statTo: '2.5%' }), 'object')
+  assert.equal(styleForContent('statement', { headline: 'A. B.' }), 'statement')
+})
+
+test('styleForContent falls back to statement when the enumerating layouts have nothing to enumerate', () => {
+  // Post #54 was revised to `contrast` with no items at all, so the AFTER panel
+  // rendered empty on a mostly-white canvas — worse than what it replaced.
+  assert.equal(styleForContent('contrast', { headline: 'A. B.' }), 'statement')
+  assert.equal(styleForContent('twoband', {}), 'statement')
+  assert.equal(styleForContent('orbit', { items: '' }), 'statement')
+})
+
+test('styleForContent ignores a band separator that carries no row of its own', () => {
+  assert.equal(styleForContent('twoband', { items: '--' }), 'statement')
+  assert.equal(styleForContent('twoband', { items: '  \n--\n\n' }), 'statement')
+})
+
+test('styleForContent falls back when object has neither an artefact nor a stat pair', () => {
+  assert.equal(styleForContent('object', { headline: 'A. B.' }), 'statement')
+  assert.equal(styleForContent('object', { statFrom: '11.8%' }), 'statement')
+})
+
+test('styleForContent leaves none alone', () => {
+  assert.equal(styleForContent('none', {}), 'none')
 })

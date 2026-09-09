@@ -55,10 +55,20 @@ test('parseRevision(graphic) returns only graphic fields and coerces unknown sty
 })
 
 test('parseRevision(both) returns copy and graphic, tolerating fences/prose', () => {
-  const out = parseRevision('Sure:\n```json\n{"copy":"c","cta":"Book","graphicStyle":"stat","graphic":{"statTo":"2%"}}\n```', 'both')
+  // A legacy `stat` pick still maps onto `object` — given a stat pair object can draw.
+  const out = parseRevision(
+    'Sure:\n```json\n{"copy":"c","cta":"Book","graphicStyle":"stat","graphic":{"statFrom":"11.8%","statTo":"2%"}}\n```',
+    'both',
+  )
   assert.equal(out.copy, 'c')
   assert.equal(out.graphicStyle, 'object')
-  assert.deepEqual(out.graphic, { statTo: '2%' })
+  assert.deepEqual(out.graphic, { statFrom: '11.8%', statTo: '2%' })
+})
+
+test('parseRevision drops a layout the revision did not give content for', () => {
+  // Post #54 came back as `contrast` with no items and rendered an empty panel.
+  const out = parseRevision('{"graphicStyle":"contrast","graphic":{"headline":"A. B."}}', 'graphic')
+  assert.equal(out.graphicStyle, 'statement')
 })
 
 test('parseRevision throws when there is no object', () => {

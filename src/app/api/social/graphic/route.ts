@@ -3,6 +3,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { renderGraphic } from '@/lib/social/graphics/render'
 import { buildGraphicFromPost, type PostForGraphic } from '@/lib/social/graphics/fromPost'
+import { renderAndAttachGraphic } from '@/lib/social/graphics/attach'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -48,15 +49,8 @@ export async function POST(req: Request) {
   if (!post) return NextResponse.json({ error: 'not found' }, { status: 404 })
 
   try {
-    const png = await renderGraphic(buildGraphicFromPost(post as PostForGraphic))
-    const brandId = typeof post.brand === 'object' ? post.brand.id : post.brand
-    const asset = await payload.create({
-      collection: 'social-assets',
-      data: { alt: `${post.title || 'post'} graphic`, brand: brandId, source: 'ai-generated' },
-      file: { data: png, mimetype: 'image/png', name: `post-${body.postId}-${post.graphicStyle || 'none'}.png`, size: png.length },
-    })
-    await payload.update({ collection: 'social-posts', id: body.postId, data: { asset: asset.id } })
-    return NextResponse.json({ ok: true, assetId: asset.id })
+    const { assetId } = await renderAndAttachGraphic(payload, body.postId)
+    return NextResponse.json({ ok: true, assetId })
   } catch (err) {
     payload.logger.error({ err }, 'social graphic save failed')
     return NextResponse.json({ error: 'save failed' }, { status: 500 })
