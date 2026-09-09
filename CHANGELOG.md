@@ -2,6 +2,40 @@
 
 All notable changes to the ExcelENT site (patient + B2B) live here. Most recent at top.
 
+## 2026-09-09 — Retire the AI image button; fix three layout defects
+
+"Regenerate image" kept producing the old style. The cause was not the layout pipeline: the
+social-posts admin carried **two unrelated image buttons**, and the obvious one was the wrong one.
+
+| Button | Route | Output |
+|---|---|---|
+| "Generate image (AI)" | `/api/social/image` → OpenAI | 1024×1024 illustration — the old style |
+| "Save graphic to asset" | `/api/social/graphic` → satori | 1536×1024 v4 layout |
+
+Worse, an attached asset **disabled** the layout button, so once an AI image landed there was no
+way back to the layout without clearing the Asset field by hand. Post #24 had been stuck this way.
+
+### Changed
+- **`GenerateImageButton` removed** from the collection, the components directory and
+  `importMap.js`. `/api/social/image` stays on disk, now unreachable from the admin.
+- **`PostPreview` can regenerate.** The button no longer disables on an attached asset; it reads
+  "Regenerate graphic" and reloads afterwards, since the form keeps the stale asset id otherwise.
+- **Preview aspect ratio follows the style** — layouts are 3:2, only the legacy cards are square.
+  The cache-bust key now includes `items`, `descriptor` and `artefact`, so editing them refreshes.
+
+### Fixed
+- **`twoband` drew a dangling "PS |"** for umbrella brands (`product: null`). The template
+  hand-rolled its own lockup and skipped the guard the shared `Lockup` primitive has. The column
+  now drops when there is neither product nor descriptor, and the band centres in the freed space.
+- **`parseItems` misread a two-column row.** `Label | icon` put the icon name in the description
+  slot, so post #95 drew "doc", "code" and "list" as body copy. A trailing icon name is now read as
+  an icon — the same closed-vocabulary reasoning `stripLockupPrefix` already relied on.
+
+Three regression tests walk the rendered element tree rather than asserting the PNG did not throw,
+which is what let the "PS |" ship. 269 tests pass.
+
+Posts #24 and #95 re-rendered as real 1536×1024 layouts.
+
 ## 2026-09-04 — Orbit renders `PS | PS`, and the writing rules reach the graphic
 
 Found by dry-running the new prompt across all five brands rather than waiting for the calendar
@@ -153,6 +187,25 @@ Satori serialises `<svg>` subtrees to a string, so a React Fragment inside one t
 Tests: 255 pass. Every layout is rendered twice in `render.test.ts` — once fully populated, once
 with a completely empty `graphic` group — because the second case is what a half-filled post
 actually sends.
+
+## 2026-08-31 — Fix the 504 root cause: notify out of the transaction, SES timeouts, explicit pool
+
+The 2026-08-10 site-wide 504 had a DB-level band-aid only (`idle_in_transaction_session_timeout = 60s`). This fixes the three code-level causes. All TDD — each test watched failing first.
+
+### Notify runs after the transaction commits
+- `socialPostsAfterChange` (`src/lib/social/notify/hook.ts`) no longer awaits `notify()`. It computes the events and config synchronously, hands the delivery work to a `defer` seam (default `setImmediate`), and returns the doc. The hook is now **synchronous** — Payload accepts a sync `afterChange` return, so `SocialPosts.ts` is unchanged.
+- Both the SES call *and* the `withBrand` brand lookup moved out of the transaction; the old code did a DB read inside it too.
+- The deferred task catches its own errors into `payload.logger` — a rejected detached promise would otherwise be an unhandled rejection. Errors are logged once per batch rather than once per event.
+- **Incidental fix:** `stampNotify` had never succeeded — `notify_generated_at` was NULL on all 89 posts because the update ran from inside the create transaction and hit `NotFound` on an uncommitted row. Running post-commit fixes it. Verified against the live DB with email stubbed: `generatedAt` now writes.
+
+### SES timeouts
+- `new SESv2Client({ region })` had **no** socket or request timeout, so a stalled call never returned. `buildSesClientConfig()` (exported from `src/lib/sesEmailAdapter.ts`, tested via the handler's resolved `configProvider` — real config, not a mock) now supplies a `NodeHttpHandler` with `connectionTimeout` 3s and `requestTimeout` 10s, both well under the 60s DB timeout so SES loses the race.
+
+### Explicit pool
+- New `src/lib/dbPool.ts`: `buildPoolConfig(env)` sets `max: 20` (was the silent node-postgres default of 10) and `connectionTimeoutMillis: 15_000` so an exhausted pool fails fast instead of hanging forever — the actual 504 symptom. A test pins `POOL_MAX * 3 < 100` because three pm2 processes each hold their own pool against a server `max_connections` of 100.
+
+### Verification
+Full suite 231/231. Production build clean. All three pm2 processes restarted; `/admin` (the request class that 504'd) responds in 86ms, both public sites 200. No `idle in transaction` sessions.
 
 ## 2026-08-18 — Social writing quality: slop detection, corpus quality gate, bullets
 

@@ -124,3 +124,28 @@ test('stripLockupPrefix leaves well-formed rows alone', () => {
 test('stripLockupPrefix drops a bare PS row with nothing to shift up', () => {
   assert.deepEqual(stripLockupPrefix(parseItems('PS')), [])
 })
+
+test('parseItems reads a two-column row as label + icon, not label + description', () => {
+  // Post #95 shipped rows written as `Text | icon`, so the icon name landed in
+  // the description slot and the card drew "doc" and "list" as body copy.
+  // The icon vocabulary is closed, so a trailing icon name is unambiguous.
+  const items = parseItems('Coding logic built for ENT procedures | code\nScheduling shaped around referral volume | doc')
+  assert.equal(items[0].label, 'Coding logic built for ENT procedures')
+  assert.equal(items[0].desc, '')
+  assert.equal(items[0].icon, 'code')
+  assert.equal(items[1].icon, 'doc')
+})
+
+test('parseItems keeps a two-column row as a description when it is not an icon name', () => {
+  const items = parseItems('Coding accuracy | Catches procedure-level errors')
+  assert.equal(items[0].label, 'Coding accuracy')
+  assert.equal(items[0].desc, 'Catches procedure-level errors')
+  assert.equal(items[0].icon, null)
+})
+
+test('parseItems leaves a full three-column row alone', () => {
+  const items = parseItems('Coding accuracy | Catches procedure-level errors | code')
+  assert.equal(items[0].label, 'Coding accuracy')
+  assert.equal(items[0].desc, 'Catches procedure-level errors')
+  assert.equal(items[0].icon, 'code')
+})

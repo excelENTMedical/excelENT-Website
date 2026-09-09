@@ -6,7 +6,10 @@ export const SocialPosts: CollectionConfig = {
   versions: { drafts: false, maxPerDoc: 20 }, // keep edit history without a separate publish flow
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'brand', 'platform', 'status', 'updatedAt'],
+    // Ordered as a calendar reads: when it runs, what it says, who it's for, where it stands.
+    // updatedAt is deliberately gone — it answered "when did I last touch this", never "when does
+    // this go out", which is the only date that matters on a posting schedule.
+    defaultColumns: ['scheduledTime', 'title', 'brand', 'theme', 'status'],
     description: 'AI-drafted posts. Review, edit, approve/reject here — your feedback trains the next batch.',
     group: 'Social',
   },
@@ -74,15 +77,6 @@ export const SocialPosts: CollectionConfig = {
             { name: 'copy', type: 'textarea', required: true, admin: { description: 'The post text. Edit freely before approving.' } },
             { name: 'cta', type: 'text' },
             { name: 'asset', type: 'relationship', relationTo: 'social-assets' },
-            {
-              name: 'generateImage',
-              type: 'ui',
-              admin: {
-                components: {
-                  Field: '/components/admin/GenerateImageButton',
-                },
-              },
-            },
             {
               name: 'revise',
               type: 'ui',
@@ -173,7 +167,9 @@ export const SocialPosts: CollectionConfig = {
               type: 'date',
               admin: {
                 description: 'Optional. Empty = publish immediately when you click Publish. Set = the scheduler posts it at this time.',
-                date: { pickerAppearance: 'dayAndTime' },
+                // Weekday is part of the format because the posting schedule is a weekday rotation
+                // (Mon company, Tue RCM, ...). "Aug 4" alone doesn't tell you if a slot is right.
+                date: { pickerAppearance: 'dayAndTime', displayFormat: 'EEE MMM d, yyyy h:mm a' },
               },
             },
             {

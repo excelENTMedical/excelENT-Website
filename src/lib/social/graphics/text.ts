@@ -24,12 +24,21 @@ export function splitHook(headline: string): { lead: string; accent: string } {
 /**
  * Parse the `items` field: one row per line, `Label | Description | icon`.
  * Description and icon are both optional. Blank lines and empty labels drop out.
+ * A two-field row ending in an icon name is read as `Label | icon`.
  */
 export function parseItems(raw: string | null | undefined, max = 5): GraphicItem[] {
   return String(raw ?? '')
     .split('\n')
     .map((line) => {
-      const [label, desc, icon] = line.split('|')
+      const parts = line.split('|')
+      const [label, desc, icon] = parts
+      // A two-column row is `Label | icon` when the second field names an icon.
+      // The icon vocabulary is closed, so this is unambiguous — the same
+      // reasoning stripLockupPrefix relies on. Post #95 shipped rows in this
+      // shape and drew "doc" and "list" as body copy.
+      if (parts.length === 2 && isIconName((desc || '').trim())) {
+        return { label: (label || '').trim(), desc: '', icon: (desc || '').trim() }
+      }
       return {
         label: (label || '').trim(),
         desc: (desc || '').trim(),

@@ -88,13 +88,20 @@ function LowerBand({
   theme: GraphicTheme
   data: LayoutData
 }) {
-  const labelW = 300
+  // An umbrella brand has no PS | PRODUCT lockup and may have no descriptor
+  // either. Drawing the column anyway left a dangling "PS |" separator with
+  // nothing after it; with nothing to say, the column goes and the band widens.
+  const hasLockup = Boolean(data.product || data.descriptor)
+  const labelW = hasLockup ? 300 : 0
   const w = Math.min(stepWidth(items.length, 46) - Math.floor(labelW / Math.max(items.length, 1)), 214)
   return (
     <div
       style={{
         display: 'flex',
         alignItems: 'center',
+        // Without the lockup column the steps are narrower than the band, so
+        // they must centre rather than cluster against the left edge.
+        justifyContent: hasLockup ? 'flex-start' : 'center',
         marginTop: 'auto',
         marginBottom: 34,
         border: `2px solid ${theme.lav2}`,
@@ -103,18 +110,31 @@ function LowerBand({
         padding: '34px 38px',
       }}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', width: labelW, paddingRight: 26 }}>
-        <div style={{ ...row, fontSize: 38, fontWeight: 700 }}>
-          <span style={{ color: theme.navy }}>PS</span>
-          <span style={{ color: theme.lav3, margin: '0 12px' }}>|</span>
-          <span style={{ color: theme.purple }}>{data.product || ''}</span>
+      {hasLockup ? (
+        <div style={{ display: 'flex', flexDirection: 'column', width: labelW, paddingRight: 26 }}>
+          {data.product ? (
+            <div style={{ ...row, fontSize: 38, fontWeight: 700 }}>
+              <span style={{ color: theme.navy }}>PS</span>
+              <span style={{ color: theme.lav3, margin: '0 12px' }}>|</span>
+              <span style={{ color: theme.purple }}>{data.product}</span>
+            </div>
+          ) : null}
+          {data.descriptor ? (
+            <div
+              style={{
+                ...row,
+                fontSize: 15,
+                fontWeight: 600,
+                color: theme.navy,
+                letterSpacing: '0.2em',
+                marginTop: data.product ? 12 : 0,
+              }}
+            >
+              {data.descriptor}
+            </div>
+          ) : null}
         </div>
-        {data.descriptor ? (
-          <div style={{ ...row, fontSize: 15, fontWeight: 600, color: theme.navy, letterSpacing: '0.2em', marginTop: 12 }}>
-            {data.descriptor}
-          </div>
-        ) : null}
-      </div>
+      ) : null}
       {items.map((s, i) => (
         <div key={s.label} style={{ display: 'flex' }}>
           {i > 0 ? (

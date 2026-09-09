@@ -4,6 +4,8 @@ import { prepareHook } from './templates/hook'
 import { prepareStat } from './templates/stat'
 import { prepareDataViz } from './templates/dataviz'
 import { NO_DESCRIPTOR, hasStatPair, prepareLayout } from './templates/shared'
+import { TwoBandCard } from './templates/twoband'
+import { THEMES } from './theme'
 
 const brand = 'PS | RCM'
 
@@ -78,4 +80,63 @@ test('hasStatPair needs both ends', () => {
   assert.equal(hasStatPair(prepareLayout({ fields: { statFrom: '11.8%', statTo: '2.5%' } })), true)
   assert.equal(hasStatPair(prepareLayout({ fields: { statFrom: '11.8%' } })), false)
   assert.equal(hasStatPair(prepareLayout({ fields: {} })), false)
+})
+
+/**
+ * Walk a template's element tree and collect every string it would draw.
+ * The PNG assertions in render.test.ts only prove a template did not throw;
+ * they cannot see that it drew a lockup separator with nothing after it.
+ */
+function drawnText(node: unknown, out: string[] = []): string[] {
+  if (node == null || typeof node === 'boolean') return out
+  if (typeof node === 'string' || typeof node === 'number') {
+    out.push(String(node))
+    return out
+  }
+  if (Array.isArray(node)) {
+    for (const n of node) drawnText(n, out)
+    return out
+  }
+  const el = node as { type?: unknown; props?: { children?: unknown } }
+  if (!el.props) return out
+  if (typeof el.type === 'function') {
+    return drawnText((el.type as (p: unknown) => unknown)(el.props), out)
+  }
+  return drawnText(el.props.children, out)
+}
+
+test('twoband omits the PS lockup for an umbrella brand with no product', () => {
+  // excelent-practice-solutions has product: null. The hand-rolled lockup in
+  // twoband drew "PS |" with an empty product — post #24 shipped that way.
+  const data = prepareLayout({
+    fields: { headline: 'A. B.', items: 'RCM|Claims|doc\nLEXI|Calls|phone', descriptor: NO_DESCRIPTOR },
+    brandSlug: 'excelent-practice-solutions',
+    cta: 'Go',
+  })
+  assert.equal(data.product, null)
+  assert.equal(data.descriptor, null)
+  const drawn = drawnText(TwoBandCard({ data, theme: THEMES.b2b }))
+  assert.ok(!drawn.includes('PS'), 'drew a bare PS with no product after it')
+  assert.ok(!drawn.includes('|'), 'drew a dangling lockup separator')
+})
+
+test('twoband still draws the descriptor when the brand has no product', () => {
+  const data = prepareLayout({
+    fields: { headline: 'A. B.', items: 'RCM|Claims|doc' },
+    brandSlug: 'excelent-practice-solutions',
+  })
+  assert.equal(data.product, null)
+  const drawn = drawnText(TwoBandCard({ data, theme: THEMES.b2b }))
+  assert.ok(drawn.includes('THE ENT PRACTICE PLATFORM'), 'dropped the descriptor along with the lockup')
+  assert.ok(!drawn.includes('PS'), 'drew a bare PS with no product after it')
+})
+
+test('twoband keeps the PS | PRODUCT lockup for a product brand', () => {
+  const data = prepareLayout({
+    fields: { headline: 'A. B.', items: 'Step|One|doc' },
+    brandSlug: 'ps-rcm',
+  })
+  const drawn = drawnText(TwoBandCard({ data, theme: THEMES.b2b }))
+  assert.ok(drawn.includes('PS'), 'lost the PS half of the lockup')
+  assert.ok(drawn.includes('RCM'), 'lost the product half of the lockup')
 })
