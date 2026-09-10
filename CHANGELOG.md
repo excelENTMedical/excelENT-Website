@@ -2,6 +2,43 @@
 
 All notable changes to the ExcelENT site (patient + B2B) live here. Most recent at top.
 
+## 2026-09-10 — Read the org's feed back, and a verdict tool for parked posts
+
+Fourteen posts have sat in limbo since August, each carrying *"Abandoned mid-publish: the claim
+was never completed. This post MAY ALREADY BE LIVE on LinkedIn."* The sweeper parks rather than
+retries because it cannot check — and re-queuing a post that is already live double-posts to a
+public company Page.
+
+### Why they are parked, established
+Successful publishes run **Aug 3, 4, 7 → nothing → Sep 1, 2, 3, 4, 8**. The gap is exactly the
+parked window, and the notify transaction/pool leak behind it was fixed in code on 2026-08-31 —
+the first success after the fix is Sep 1. In the scheduler log each of the fourteen has **only** a
+`swept stale claim` line: no `published post N`, no `failed to publish post N`. `publishPost`
+never returned, so it hung rather than errored.
+
+**They are more likely live than not.** The claim write succeeded, so the pool was serving writes
+when the attempt began, and `publishPost` runs findByID → readFile → **createPost** → update. The
+hang almost certainly landed on that final update, after LinkedIn had accepted the post — the same
+shape as the documented post-26 case. Nothing here may be re-queued without checking the Page.
+
+### Changed
+- **`listOrgPosts`, `normalizeCommentary`, `matchPostByCopy`** added to the LinkedIn client. The
+  scope is not granted today — `GET /rest/posts?q=author` answers `403 ACCESS_DENIED
+  … partnerApiPostsExternal.FINDER-author`, because that finder sits behind LinkedIn's Community
+  Management partner program — but the moment it is, reconciliation becomes automatic.
+  `listOrgPosts` **throws** on 403 rather than returning an empty list, so a missing scope can
+  never be mistaken for an empty feed (the lesson `hasAdminScope` already records for
+  `organizationAcls`). `matchPostByCopy` compares a normalized 60-character prefix, because what
+  we sent was `escapeLittleText(copy)` and an edited post must still be recognisable.
+- **`scripts/reconcile-parked-posts.mts`** applies a human verdict: `--live` records `sent` (no
+  URN — the update that would have stored it is the one that hung), `--abandon` returns the post
+  to draft and off the queue, `--requeue id:ISO-time` gives it a new slot rather than reusing a
+  past-dated one that would fire immediately. It **refuses to write while `social-scheduler` is
+  online**, since a re-queued post could otherwise become due mid-edit, and it is a dry run
+  unless `--apply` is passed.
+
+286 tests pass.
+
 ## 2026-09-09 (later) — A revision now re-renders the graphic it revised
 
 Asking the AI to fix white space appeared to do nothing. It had in fact worked — post #24 went
